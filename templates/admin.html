@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Turnos Reservados</title>
+    <link rel="stylesheet" href="/static/style.css">
+
+</head>
+<body>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+    <h1>Turnos Reservados</h1>
+    <form action="{{ url_for('panel_admin') }}" method="get">
+        <button type="submit" style="width:150px; padding:10px; font-size:18px; border-radius:5px;">
+            Volver
+        </button>
+    </form>
+</div>
+
+    <form method="get" action="/ver_turnos">
+        <label for="fecha">Filtrar por fecha:</label>
+        <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro }}">
+        <button type="submit">Filtrar</button>
+        {% if fecha_filtro %}
+            <a href="/ver_turnos">Ver todos</a>
+        {% endif %}
+    </form>
+
+    <table border="1">
+        <tr>
+            <th>DNI</th><th>Nombre</th><th>Teléfono</th><th>Fecha</th><th>Hora</th><th>Acción</th>
+        </tr>
+        {% for t in turnos %}
+        <tr>
+            <td>{{ t.dni }}</td>
+            <td>{{ t.nombre }}</td>
+            <td>{{ t.telefono }}</td>
+            <td>{{ t.fecha }}</td>
+            <td>{{ t.hora }}</td>
+            <td>
+                <form method="post" action="/borrar_turno">
+                    <input type="hidden" name="dni" value="{{ t.dni }}">
+                    <input type="hidden" name="fecha" value="{{ t.fecha }}">
+                    <input type="hidden" name="hora" value="{{ t.hora }}">
+                    <button type="submit">Borrar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

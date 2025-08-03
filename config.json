@@ -1,0 +1,43 @@
+{
+  "admin_password": "admin123",
+  "intervalo_turnos": 15,
+  "horarios_atencion": {
+    "lunes": [
+      "10:00",
+      "17:00",
+      true
+    ],
+    "martes": [
+      "10:00",
+      "17:00",
+      true
+    ],
+    "miércoles": [
+      "10:00",
+      "17:00",
+      true
+    ],
+    "jueves": [
+      "10:00",
+      "17:00",
+      true
+    ],
+    "viernes": [
+      "10:00",
+      "17:00",
+      true
+    ],
+    "sábado": [
+      "10:00",
+      "13:00",
+      true
+    ],
+    "domingo": [
+      "10:00",
+      "17:00",
+      false
+    ]
+  },
+  "smtp_email": "daversa1988@gmail.com",
+  "smtp_password": "xjit nacw pdcr azsa"
+}

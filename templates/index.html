@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ clave para móviles -->
+    <title>Reservar Turno</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="fondo-dientes">
+    <div style="text-align:center; margin-bottom:20px;">
+        <h1>Consultorio Odontológico Zapiola</h1>
+        <h1>Dra. Karina Leguizamón</h1>
+        <h2>Zapiola 1180 - Bernal Oeste</h2>
+        <h2>Tel: 11-2404-9424</h2>
+        <h2>Reserva de turnos</h2>
+    </div>
+
+    <div style="text-align:center; margin-top:10px;">
+    	<form action="/reservar" method="post">
+        <input type="text" name="dni" placeholder="DNI" required>
+        <input type="text" name="nombre" placeholder="Nombre y Apellido" required>
+        <input type="tel" name="telefono" placeholder="Teléfono" required>
+        <input type="email" name="email" placeholder="Correo electrónico" required> <!-- ✅ Nuevo campo -->
+        
+        <h3>Seleccione fecha</h3>
+        <input type="text" name="fecha" id="fecha" required placeholder="Seleccione fecha">
+        
+        <h3>Seleccione hora</h3>
+        <select name="hora" id="hora" required></select>
+        
+        <button type="submit">Reservar</button>
+    </form>
+   </div>
+
+    <div style="text-align:center; margin-top:10px;">
+        <form action="{{ url_for('cancelar') }}" method="get">
+            <button type="submit">Ver/Cancelar un Turno</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('fecha').addEventListener('change', function() {
+            const formData = new FormData();
+            formData.append('fecha', this.value);
+            fetch('/obtener_horarios', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    const select = document.getElementById('hora');
+                    select.innerHTML = '';
+                    data.forEach(h => {
+                        const opt = document.createElement('option');
+                        opt.value = h;
+                        opt.textContent = h;
+                        select.appendChild(opt);
+                    });
+                });
+        });
+    </script>
+
+<!-- ✅ Librería Flatpickr -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/dias_disponibles')
+    .then(res => res.json())
+    .then(fechas => {
+        flatpickr("#fecha", {
+            dateFormat: "Y-m-d",
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const fecha = dayElem.dateObj.toISOString().split('T')[0];
+                if (fechas.includes(fecha)) {
+                    dayElem.style.backgroundColor = "#90EE90"; // ✅ verde (hay turnos)
+                } else {
+                    dayElem.style.backgroundColor = "#FFB6B6"; // ❌ rojo (sin turnos)
+                    dayElem.style.opacity = "0.5";
+                }
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>

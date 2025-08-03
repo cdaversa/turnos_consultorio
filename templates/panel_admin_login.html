@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ responsive -->
+    <title>Login Administrador</title>
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 50px; padding: 10px; }
+        .btn { display: inline-block; padding: 10px 20px; margin: 10px; font-size: 18px; background: #007BFF; color: white; text-decoration: none; border-radius: 5px; }
+        .btn:hover { background: #0056b3; }
+        /* ✅ mejora en móviles */
+        @media (max-width: 768px) {
+            .btn { width: 90%; font-size: 20px; padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <h2>Ingrese contraseña de administrador</h2>
+    {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+    <form method="POST">
+        <input type="password" name="password" placeholder="Contraseña">
+        <button type="submit">Entrar</button>
+    </form>
+</body>
+</html>

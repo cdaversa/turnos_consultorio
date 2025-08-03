@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración del Sistema</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- ✅ Encabezado -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h1>Configuración del sistema</h1>
+        <form action="{{ url_for('panel_admin') }}" method="get">
+            <button type="submit" style="width:150px; padding:10px; font-size:18px; border-radius:5px;">
+                Volver
+            </button>
+        </form>
+    </div>
+
+    <!-- ✅ Cambiar contraseña -->
+    <form method="post">
+        <h2>Cambiar Clave de Administrador</h2>
+        <input type="hidden" name="accion" value="cambiar_clave">
+        <input type="password" name="nueva_clave" placeholder="Nueva clave" required>
+        <button type="submit">Guardar Clave</button>
+    </form>
+
+    <hr>
+
+    <!-- ✅ Configurar horarios e intervalo -->
+    <form method="post">
+        <input type="hidden" name="accion" value="guardar_horarios">
+        <h2>Configurar Horarios de Atención</h2>
+
+        {% for dia, horario in horarios.items() %}
+        <div>
+            <label>
+                <input type="checkbox" name="activo_{{ dia }}" {% if horario|length < 3 or horario[2] %}checked{% endif %}>
+                {{ dia.capitalize() }}
+            </label>
+            Desde: <input type="time" name="desde_{{ dia }}" value="{{ horario[0] }}">
+            Hasta: <input type="time" name="hasta_{{ dia }}" value="{{ horario[1] }}">
+        </div>
+        {% endfor %}
+
+        <hr>
+
+        <h2>Configurar Intervalo de Turnos</h2>
+        <label>Duración de cada turno (minutos):</label>
+        <input type="number" name="intervalo_turnos" min="5" step="5" value="{{ intervalo }}" required>
+
+        <hr>
+        <button type="submit">Guardar Configuración</button>
+    </form>
+
+    <hr>
+
+    <!-- ✅ NUEVO: Configurar SMTP -->
+    <form method="post">
+        <h2>Configuración del Email SMTP</h2>
+        <input type="hidden" name="accion" value="guardar_smtp">
+        <label>Email SMTP:</label>
+        <input type="email" name="smtp_email" value="{{ email_smtp }}" required>
+        <label>Contraseña SMTP:</label>
+        <input type="password" name="smtp_password" placeholder="••••••" value="{{ pass_smtp }}" required>
+        <button type="submit">Guardar Configuración SMTP</button>
+    </form>
+
+</body>
+</html>

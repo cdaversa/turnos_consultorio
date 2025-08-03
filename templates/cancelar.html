@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ -->
+    <title>Cancelar Turno</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="fondo-dientes">
+    <h1>Ver/Cancelar Turno</h1>
+    <form method="post" action="/cancelar">
+        <input type="text" name="dni" placeholder="Ingresá tu DNI" required value="{{ dni }}">
+        <button type="submit">Buscar Turnos</button>
+    </form>
+
+    {% if turnos %}
+    <h2>Turnos Encontrados:</h2>
+    <table>
+        <tr><th>Fecha</th><th>Hora</th><th>Nombre</th><th>Teléfono</th><th>Acción</th></tr>
+        {% for t in turnos %}
+        <tr>
+            <td>{{ t.fecha }}</td>
+            <td>{{ t.hora }}</td>
+            <td>{{ t.nombre }}</td>
+            <td>{{ t.telefono }}</td>
+            <td>
+                <form method="post" action="/cancelar_turno">
+                    <input type="hidden" name="dni" value="{{ t.dni }}">
+                    <input type="hidden" name="fecha" value="{{ t.fecha }}">
+                    <input type="hidden" name="hora" value="{{ t.hora }}">
+                    <button type="submit">Cancelar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% elif dni %}
+    <p>No se encontraron turnos para el DNI ingresado.</p>
+    {% endif %}
+
+    <div style="text-align:right; margin-top:10px;">
+        <form action="{{ url_for('index') }}" method="get">
+            <button type="submit">Volver</button>
+        </form>
+    </div>
+</body>
+</html>

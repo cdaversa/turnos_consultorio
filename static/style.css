@@ -1,0 +1,108 @@
+/* ✅ Estilo base para escritorio */
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    margin: 0;
+}
+
+/* ✅ Fondo solo en las páginas con la clase fondo-dientes */
+body.fondo-dientes {
+    background: url('/static/fondo_dientes.jpg') repeat;
+    background-size: 150px;
+}
+
+/* ✅ Títulos */
+h1 {
+    color: #333;
+    margin-bottom: 10px;
+}
+h2 {
+    color: #555;
+}
+
+/* ✅ Formularios y tablas */
+form, table {
+    margin-top: 20px;
+}
+
+/* ✅ Inputs, selects y botones */
+input, select, button {
+    padding: 10px;
+    margin: 5px 0;
+    width: 100%;
+    max-width: 300px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+/* ✅ Botones */
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+button:hover {
+    background-color: #45a049;
+}
+
+/* ✅ Tablas */
+table {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+th, td {
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+th {
+    background-color: #f5f5f5;
+}
+
+/* ✅ Ajustes generales para dispositivos móviles */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+
+    h1, h2 {
+        font-size: 1.4em;
+        text-align: center;
+    }
+
+    form {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        max-width: 100%;
+    }
+
+    input, select, button {
+        width: 100%;
+        max-width: 100%;
+        font-size: 1em;
+        padding: 12px;
+    }
+
+    table {
+        font-size: 0.9em;
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    button {
+        font-size: 1.1em;
+        padding: 12px;
+    }
+}
+

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turno Confirmado</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div style="text-align:center; margin-top:50px;">
+        <h1>✅ ¡Turno Reservado con Éxito!</h1>
+        <p>Hemos enviado un correo electrónico con los detalles de tu turno.</p>
+        <p>Te esperamos el <strong>{{ fecha }}</strong> a las <strong>{{ hora }}</strong>.</p>
+        <hr>
+        <form action="{{ url_for('index') }}" method="get">
+            <button type="submit" style="width:200px; padding:10px; font-size:18px; border-radius:5px;">
+                Volver a la Página Principal
+            </button>
+        </form>
+    </div>
+</body>
+</html>

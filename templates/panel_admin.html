@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ responsive -->
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" href="/static/style.css"> <!-- ✅ usa tu CSS global -->
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 50px; }
+        .btn { display: inline-block; padding: 10px 20px; margin: 10px; font-size: 18px; background: #007BFF; color: white; text-decoration: none; border-radius: 5px; }
+        .btn:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Panel de Administración del Consultorio Odontológico Zapiola</h1>
+    <a class="btn" href="{{ url_for('ver_turnos') }}">Ver Turnos</a>
+    <a class="btn" href="{{ url_for('configuracion') }}">Configuración</a>
+    <a class="btn" href="{{ url_for('logout') }}">Cerrar Sesión</a>
+</body>
+</html>
