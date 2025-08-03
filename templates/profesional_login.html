@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Login Profesional</title>
+<style>
+body { font-family: Arial; text-align:center; margin-top:50px; }
+input { padding:10px; margin:10px; width:200px; }
+button { padding:10px 20px; background:#007BFF; color:white; border:none; border-radius:5px; }
+button:hover { background:#0056b3; }
+</style>
+</head>
+<body>
+<h2>🔐 Acceso Profesional</h2>
+<form method="post">
+    <input type="password" name="password" placeholder="Contraseña" required>
+    <br>
+    <button type="submit">Entrar</button>
+</form>
+{% if error %}<p style="color:red;">{{ error }}</p>{% endif %}
+</body>
+</html>

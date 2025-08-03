@@ -27,6 +27,7 @@ HORARIOS_ATENCION = {
 CONFIG_FILE = 'config.json'
 CONFIG_DEFAULT = {
     "admin_password": ADMIN_PASSWORD,
+    "profesional_password": "prof123",  # ✅ clave por defecto para el profesional
     "intervalo_turnos": 15,
     "horarios_atencion": {d: [h[0], h[1], True] for d, h in HORARIOS_ATENCION.items()},
     "smtp_email": EMAIL_USER,
@@ -231,7 +232,8 @@ def reservar():
 @app.route('/panel_admin', methods=['GET', 'POST'])
 def panel_admin():
     if request.method == 'POST':
-        if request.form.get('password') == ADMIN_PASSWORD:
+        clave_guardada = cargar_config().get('admin_password', ADMIN_PASSWORD)  # ✅ lee desde config.json
+        if request.form.get('password') == clave_guardada:
             session['admin'] = True
             return render_template('panel_admin.html', logged=True)
         else:
@@ -299,6 +301,8 @@ def configuracion():
         accion = request.form.get('accion')
         if accion == 'cambiar_clave':
             cfg['admin_password'] = request.form['nueva_clave']
+        elif accion == 'cambiar_clave_profesional':   # ✅ agregado
+            cfg['profesional_password'] = request.form['nueva_clave_profesional']
         elif accion == 'guardar_horarios':
             nuevos = {}
             for dia in ['lunes','martes','miércoles','jueves','viernes','sábado','domingo']:
@@ -311,7 +315,8 @@ def configuracion():
         elif accion == 'guardar_smtp':
             cfg['smtp_email'] = request.form.get('smtp_email')
             cfg['smtp_password'] = request.form.get('smtp_password')
-        guardar_config(cfg)
+        
+        guardar_config(cfg)   # ✅ se asegura que se guarde cualquier cambio
 
     return render_template('configuracion.html',
                            horarios=cfg.get('horarios_atencion', {}),
@@ -423,15 +428,36 @@ def api_turnos_dia():
 
 # ====== PANEL PARA PROFESIONALES ======
 
-@app.route('/profesional')
+@app.route('/profesional', methods=['GET', 'POST'])
 def profesional():
+    if not session.get('profesional'):
+        return redirect(url_for('profesional_login'))
+
     fecha = request.args.get('fecha', datetime.today().strftime('%Y-%m-%d'))
     turnos = sorted([t for t in cargar_turnos() if t['fecha'] == fecha], key=lambda x: x['hora'])
     return render_template('profesional.html', turnos=turnos, fecha=fecha)
 
-@app.route('/profesional.html')
-def profesional_html():
-    return redirect(url_for('profesional'))
+@app.route('/profesional_login', methods=['GET', 'POST'])
+def profesional_login():
+    if request.method == 'POST':
+        clave_guardada = cargar_config().get('profesional_password', 'prof123')
+        if request.form.get('password') == clave_guardada:
+            session['profesional'] = True
+            # ✅ Redirige para aplicar el filtro de fecha
+            return redirect(url_for('profesional'))
+        else:
+            return render_template('profesional_login.html', error='Clave incorrecta')
+    
+    # ✅ Si ya está logueado, mandalo a la vista de profesional
+    if session.get('profesional'):
+        return redirect(url_for('profesional'))
+
+    return render_template('profesional_login.html')
+
+@app.route('/logout_profesional')
+def logout_profesional():
+    session.pop('profesional', None)
+    return redirect(url_for('profesional_login'))
 
 if __name__ == '__main__':
     app.run(debug=True)

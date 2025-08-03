@@ -2,21 +2,41 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ clave para móviles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Profesional</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; position: relative; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
         th { background: #007BFF; color: white; }
         tr.en-sala { background: #FFD580; }
         tr.reservado { background: #E8F6F3; }
-        tr.atendido { background: #C6F6C6; } /* ✅ Verde claro para atendidos */
+        tr.atendido { background: #C6F6C6; }
         button { padding: 5px 10px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 5px; }
         button:hover { background: #218838; }
+
+        /* ✅ Estilo para el botón de logout */
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .logout-btn:hover {
+            background: #b52b37;
+        }
     </style>
 </head>
 <body>
+
+<!-- ✅ Botón de cerrar sesión -->
+<a href="{{ url_for('logout_profesional') }}" class="logout-btn">🚪 Cerrar Sesión</a>
 
 <h1>Turnos del Día <span id="fecha-mostrar">{{ fecha }}</span></h1>
 
@@ -36,7 +56,7 @@
 <script>
 // ✅ Función para obtener los turnos de la fecha seleccionada
 function cargarTurnos() {
-    const fecha = document.getElementById("selector-fecha").value || "{{ fecha }}"; // 🔹 usa fecha actual por defecto
+    const fecha = document.getElementById("selector-fecha").value || "{{ fecha }}";
     document.getElementById("fecha-mostrar").innerText = fecha;
     
     fetch(`/api/turnos_dia?fecha=${fecha}`)
