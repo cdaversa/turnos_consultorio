@@ -36,7 +36,7 @@
 <script>
 // ✅ Función para obtener los turnos de la fecha seleccionada
 function cargarTurnos() {
-    const fecha = document.getElementById("selector-fecha").value;
+    const fecha = document.getElementById("selector-fecha").value || "{{ fecha }}"; // 🔹 usa fecha actual por defecto
     document.getElementById("fecha-mostrar").innerText = fecha;
     
     fetch(`/api/turnos_dia?fecha=${fecha}`)
@@ -47,16 +47,19 @@ function cargarTurnos() {
 
         turnos.forEach(t => {
             const tr = document.createElement("tr");
-            tr.className = (t.estado === "en_sala") ? "en-sala" : (t.estado === "atendido") ? "atendido" : "reservado";
+            tr.className = (t.estado === "en_sala") ? "en-sala" :
+                           (t.estado === "atendido") ? "atendido" : "reservado";
             
             tr.innerHTML = `
                 <td>${t.hora}</td>
                 <td>${t.nombre}</td>
                 <td>${t.dni}</td>
                 <td>${t.telefono}</td>
-                <td>${t.estado === "en_sala" ? "🟢 En Sala" : t.estado === "atendido" ? "✅ Atendido" : "🔵 Reservado"}</td>
+                <td>${t.estado === "en_sala" ? "🟢 En Sala" :
+                       t.estado === "atendido" ? "✅ Atendido" : "🔵 Reservado"}</td>
                 <td>
-                    ${t.estado !== "atendido" ? `<button onclick="marcarAtendido('${t.dni}','${t.fecha}','${t.hora}')">✅ Marcar Atendido</button>` : ""}
+                    ${t.estado !== "atendido" ? 
+                      `<button onclick="marcarAtendido('${t.dni}','${t.fecha}','${t.hora}')">✅ Marcar Atendido</button>` : ""}
                 </td>
             `;
             tbody.appendChild(tr);
@@ -74,16 +77,16 @@ function marcarAtendido(dni, fecha, hora) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // ✅ Notificar a otras pestañas (admin) que hay cambios
             localStorage.setItem("turnosActualizados", Date.now());
-            
             setTimeout(() => cargarTurnos(), 500);
         }
     });
 }
 
-// ✅ Carga inicial y actualización automática cada 5 seg
-cargarTurnos();
+// ✅ Al cargar la página, muestra los turnos del día actual automáticamente
+document.addEventListener("DOMContentLoaded", cargarTurnos);
+
+// ✅ Mantiene la actualización automática cada 5 seg
 setInterval(cargarTurnos, 5000);
 </script>
 </body>
