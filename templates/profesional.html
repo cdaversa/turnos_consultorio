@@ -74,7 +74,10 @@ function marcarAtendido(dni, fecha, hora) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            cargarTurnos(); // 🔄 refresca tabla al actualizar estado
+            // ✅ Notificar a otras pestañas (admin) que hay cambios
+            localStorage.setItem("turnosActualizados", Date.now());
+            
+            setTimeout(() => cargarTurnos(), 500);
         }
     });
 }

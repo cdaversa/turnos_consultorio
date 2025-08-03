@@ -53,9 +53,18 @@ else:
 
 def cargar_turnos():
     if not os.path.exists(TURNOS_FILE):
+        guardar_turnos([])       # ✅ crear archivo vacío válido
         return []
-    with open(TURNOS_FILE, 'r') as f:
-        return json.load(f)
+    try:
+        with open(TURNOS_FILE, 'r', encoding='utf-8') as f:
+            contenido = f.read().strip()
+            if not contenido:
+                guardar_turnos([])   # ✅ reescribir archivo vacío con lista vacía
+                return []
+            return json.loads(contenido)
+    except json.JSONDecodeError:
+        guardar_turnos([])           # ✅ si está corrupto, lo repara
+        return []
 
 def guardar_turnos(turnos):
     with open(TURNOS_FILE, 'w') as f:
@@ -360,22 +369,24 @@ def asignar_turno():
 
     return redirect(url_for('ver_turnos'))
 
-@app.route('/marcar_en_sala', methods=['POST'])
+@app.route("/marcar_en_sala", methods=["POST"])
 def marcar_en_sala():
-    if not session.get('admin'):
-        return 'No autorizado', 403
+    dni = request.form["dni"]
+    fecha = request.form["fecha"]
+    hora = request.form["hora"]
 
-    dni = request.form['dni']
-    fecha = request.form['fecha']
-    hora = request.form['hora']
+    marcar_turno_en_sala(dni, fecha, hora)
 
+    # ✅ devolver JSON en lugar de redirigir
+    return jsonify({"status": "ok"})
+
+def marcar_turno_en_sala(dni, fecha, hora):
     turnos = cargar_turnos()
     for t in turnos:
         if t['dni'] == dni and t['fecha'] == fecha and t['hora'] == hora:
             t['estado'] = 'en_sala'
+            break
     guardar_turnos(turnos)
-
-    return redirect(url_for('ver_turnos'))
 
 @app.route('/marcar_atendido', methods=['POST'])
 def marcar_atendido():
@@ -384,31 +395,31 @@ def marcar_atendido():
     hora = request.form['hora']
 
     turnos = cargar_turnos()
-    actualizado = False
     for t in turnos:
         if t['dni'] == dni and t['fecha'] == fecha and t['hora'] == hora:
             t['estado'] = 'atendido'
-            actualizado = True
     guardar_turnos(turnos)
 
-    return jsonify({"success": actualizado})
-
+    return jsonify({"success": True})
 
 @app.route('/api/turnos_dia')
 def api_turnos_dia():
-    # Si no se pasa fecha, usa la de hoy
-    fecha = request.args.get('fecha', datetime.today().strftime('%Y-%m-%d'))
-
-    # Cargar turnos y asegurarse de que todos tengan 'estado'
+    fecha = request.args.get('fecha')  # 👉 ahora no usa fecha por defecto
     turnos = cargar_turnos()
+
+    # 🔹 Asegura siempre que cada turno tenga estado válido
     for t in turnos:
-        if 'estado' not in t:
+        if 'estado' not in t or t['estado'] not in ['reservado', 'en_sala', 'atendido']:
             t['estado'] = 'reservado'
     guardar_turnos(turnos)
 
-    # Filtrar por la fecha seleccionada
-    turnos_dia = sorted([t for t in turnos if t['fecha'] == fecha], key=lambda x: x['hora'])
-    return jsonify(turnos_dia)
+    # 👉 Si hay filtro de fecha, lo aplica; si no, devuelve todos
+    if fecha:
+        turnos_filtrados = sorted([t for t in turnos if t['fecha'] == fecha], key=lambda x: x['hora'])
+    else:
+        turnos_filtrados = sorted(turnos, key=lambda x: (x['fecha'], x['hora']))
+
+    return jsonify(turnos_filtrados)
 
 # ====== PANEL PARA PROFESIONALES ======
 

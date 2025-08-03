@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ clave para móviles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turnos Reservados</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -19,56 +19,53 @@
 
 <form method="get" action="/ver_turnos">
     <label for="fecha">Filtrar por fecha:</label>
-    <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro }}">
+    <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro if fecha_filtro else '' }}">
     <button type="submit">Filtrar</button>
     {% if fecha_filtro %}
         <a href="/ver_turnos">Ver todos</a>
     {% endif %}
 </form>
 
-<table border="1" style="width:100%; text-align:center;">
-<tr>
-    <th>DNI</th><th>Nombre</th><th>Teléfono</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acción</th>
-</tr>
-{% for t in turnos %}
-<tr style="background:{% if t.estado == 'en_sala' %}#FFD580{% else %}#E8F6F3{% endif %};">
-    <td>{{ t.dni }}</td>
-    <td>{{ t.nombre }}</td>
-    <td>{{ t.telefono }}</td>
-    <td>{{ t.fecha }}</td>
-    <td>{{ t.hora }}</td>
-    <td>
-    {% if t.estado == 'en_sala' %}
-        🟢 En Sala
-    {% elif t.estado == 'atendido' %}
-        ✅ Atendido
-    {% else %}
-        🔵 Reservado
-    {% endif %}
-</td>
-    <td>
-        <!-- ✅ Botón Marcar En Sala -->
-        <form method="post" action="/marcar_en_sala" style="display:inline;">
-            <input type="hidden" name="dni" value="{{ t.dni }}">
-            <input type="hidden" name="fecha" value="{{ t.fecha }}">
-            <input type="hidden" name="hora" value="{{ t.hora }}">
-            <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px; cursor:pointer;">
-                🟢 Marcar En Sala
-            </button>
-        </form>
-
-        <!-- ✅ Botón Borrar -->
-        <form method="post" action="/borrar_turno" style="display:inline;">
-            <input type="hidden" name="dni" value="{{ t.dni }}">
-            <input type="hidden" name="fecha" value="{{ t.fecha }}">
-            <input type="hidden" name="hora" value="{{ t.hora }}">
-            <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px; cursor:pointer;">
-                ❌ Borrar
-            </button>
-        </form>
-    </td>
-</tr>
-{% endfor %}
+<table border="1" style="width:100%; text-align:center;" id="tabla-admin">
+    <thead>
+        <tr>
+            <th>DNI</th><th>Nombre</th><th>Teléfono</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acción</th>
+        </tr>
+    </thead>
+    <tbody id="tbody-admin">
+        {% for t in turnos %}
+        <tr style="background:{% if t.estado == 'atendido' %}#C6F6C6{% elif t.estado == 'en_sala' %}#FFD580{% else %}#E8F6F3{% endif %};">
+            <td>{{ t.dni }}</td>
+            <td>{{ t.nombre }}</td>
+            <td>{{ t.telefono }}</td>
+            <td>{{ t.fecha }}</td>
+            <td>{{ t.hora }}</td>
+            <td>
+                {% if t.estado == 'atendido' %}✅ Atendido
+                {% elif t.estado == 'en_sala' %}🟢 En Sala
+                {% else %}🔵 Reservado{% endif %}
+            </td>
+            <td>
+                <form class="form-en-sala" method="post" action="/marcar_en_sala" style="display:inline;">
+                    <input type="hidden" name="dni" value="{{ t.dni }}">
+                    <input type="hidden" name="fecha" value="{{ t.fecha }}">
+                    <input type="hidden" name="hora" value="{{ t.hora }}">
+                    <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px; cursor:pointer;">
+                        🟢 Marcar En Sala
+                    </button>
+                </form>
+                <form method="post" action="/borrar_turno" style="display:inline;">
+                    <input type="hidden" name="dni" value="{{ t.dni }}">
+                    <input type="hidden" name="fecha" value="{{ t.fecha }}">
+                    <input type="hidden" name="hora" value="{{ t.hora }}">
+                    <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px; cursor:pointer;">
+                        ❌ Borrar
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
 
 <hr>
@@ -92,25 +89,6 @@
         </button>
     </form>
 </div>
-
-<script>
-document.getElementById('fecha_admin').addEventListener('change', function() {
-    const formData = new FormData();
-    formData.append('fecha', this.value);
-    fetch('/obtener_horarios', { method: 'POST', body: formData })
-    .then(res => res.json())
-    .then(data => {
-        const select = document.getElementById('hora_admin');
-        select.innerHTML = '';
-        data.forEach(h => {
-            const opt = document.createElement('option');
-            opt.value = h;
-            opt.textContent = h;
-            select.appendChild(opt);
-        });
-    });
-});
-</script>
 
 <!-- ✅ Flatpickr -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -139,6 +117,103 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    document.getElementById('fecha_admin').addEventListener('change', function() {
+        const formData = new FormData();
+        formData.append('fecha', this.value);
+        fetch('/obtener_horarios', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById('hora_admin');
+            select.innerHTML = '';
+            data.forEach(h => {
+                const opt = document.createElement('option');
+                opt.value = h;
+                opt.textContent = h;
+                select.appendChild(opt);
+            });
+        });
+    });
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    function normalizarHora(h) {
+        let [hh, mm] = h.split(":");
+        return hh.padStart(2, "0") + ":" + mm;
+    }
+
+    function cargarTurnosAdmin() {
+        const fechaFiltro = "{{ fecha_filtro if fecha_filtro else '' }}";
+        const url = (fechaFiltro && fechaFiltro.length > 0) 
+            ? `/api/turnos_dia?fecha=${fechaFiltro}` 
+            : "/api/turnos_dia";
+
+        fetch(url)
+        .then(res => res.json())
+        .then(turnos => {
+            const tbody = document.getElementById("tbody-admin");
+            tbody.innerHTML = "";
+
+            turnos.forEach(t => {
+                const tr = document.createElement("tr");
+                tr.style.background = t.estado === "atendido" ? "#C6F6C6" :
+                                      t.estado === "en_sala" ? "#FFD580" : "#E8F6F3";
+
+                tr.innerHTML = `
+                    <td>${t.dni}</td>
+                    <td>${t.nombre}</td>
+                    <td>${t.telefono}</td>
+                    <td>${t.fecha}</td>
+                    <td>${normalizarHora(t.hora)}</td>
+                    <td>${t.estado === "atendido" ? "✅ Atendido" : 
+                           t.estado === "en_sala" ? "🟢 En Sala" : "🔵 Reservado"}</td>
+                    <td>
+                        <form class="form-en-sala" method="post" action="/marcar_en_sala" style="display:inline;">
+                            <input type="hidden" name="dni" value="${t.dni}">
+                            <input type="hidden" name="fecha" value="${t.fecha}">
+                            <input type="hidden" name="hora" value="${t.hora}">
+                            <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px; cursor:pointer;">
+                                🟢 Marcar En Sala
+                            </button>
+                        </form>
+                        <form method="post" action="/borrar_turno" style="display:inline;">
+                            <input type="hidden" name="dni" value="${t.dni}">
+                            <input type="hidden" name="fecha" value="${t.fecha}">
+                            <input type="hidden" name="hora" value="${t.hora}">
+                            <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px; cursor:pointer;">
+                                ❌ Borrar
+                            </button>
+                        </form>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    // ✅ Interceptar formularios "Marcar En Sala" y enviar con fetch (AJAX)
+    document.addEventListener("submit", function(e) {
+        if (e.target.matches(".form-en-sala")) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            fetch(e.target.action, { method: "POST", body: formData })
+            .then(res => res.json())  // Espera respuesta JSON
+            .then(data => {
+                if (data.status === "ok") {
+                    cargarTurnosAdmin(); // 🔹 Recargar solo la tabla
+                }
+            })
+            .catch(err => console.error("Error al marcar en sala:", err));
+        }
+    });
+
+    // ✅ Mantener actualización automática
+    setInterval(cargarTurnosAdmin, 5000);
+    cargarTurnosAdmin();
 });
 </script>
 
