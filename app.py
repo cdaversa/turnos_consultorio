@@ -185,13 +185,14 @@ def obtener_horarios():
 @app.route('/reservar', methods=['POST'])
 def reservar():
     nuevo_turno = {
-        'dni': request.form['dni'],
-        'nombre': request.form['nombre'],
-        'telefono': request.form['telefono'],
-        'email': request.form['email'],
-        'fecha': request.form['fecha'],
-        'hora': request.form['hora']
-    }
+    'dni': request.form['dni'],
+    'nombre': request.form['nombre'],
+    'telefono': request.form['telefono'],
+    'email': request.form['email'],
+    'fecha': request.form['fecha'],
+    'hora': request.form['hora'],
+    'estado': 'reservado'   # ✅ agregado
+}
 
     turnos = cargar_turnos()
     if any(t['fecha'] == nuevo_turno['fecha'] and t['hora'] == nuevo_turno['hora'] for t in turnos):
@@ -334,13 +335,14 @@ def asignar_turno():
         return redirect(url_for('panel_admin'))
 
     nuevo_turno = {
-        'dni': request.form['dni'],
-        'nombre': request.form['nombre'],
-        'telefono': request.form['telefono'],
-        'email': request.form['email'],
-        'fecha': request.form['fecha'],
-        'hora': request.form['hora']
-    }
+    'dni': request.form['dni'],
+    'nombre': request.form['nombre'],
+    'telefono': request.form['telefono'],
+    'email': request.form['email'],
+    'fecha': request.form['fecha'],
+    'hora': request.form['hora'],
+    'estado': 'reservado'   # ✅ agregado
+}
 
     turnos = cargar_turnos()
     if any(t['fecha'] == nuevo_turno['fecha'] and t['hora'] == nuevo_turno['hora'] for t in turnos):
@@ -357,6 +359,68 @@ def asignar_turno():
                  telefono=nuevo_turno['telefono'], dni=nuevo_turno['dni'], copia_admin=True)
 
     return redirect(url_for('ver_turnos'))
+
+@app.route('/marcar_en_sala', methods=['POST'])
+def marcar_en_sala():
+    if not session.get('admin'):
+        return 'No autorizado', 403
+
+    dni = request.form['dni']
+    fecha = request.form['fecha']
+    hora = request.form['hora']
+
+    turnos = cargar_turnos()
+    for t in turnos:
+        if t['dni'] == dni and t['fecha'] == fecha and t['hora'] == hora:
+            t['estado'] = 'en_sala'
+    guardar_turnos(turnos)
+
+    return redirect(url_for('ver_turnos'))
+
+@app.route('/marcar_atendido', methods=['POST'])
+def marcar_atendido():
+    dni = request.form['dni']
+    fecha = request.form['fecha']
+    hora = request.form['hora']
+
+    turnos = cargar_turnos()
+    actualizado = False
+    for t in turnos:
+        if t['dni'] == dni and t['fecha'] == fecha and t['hora'] == hora:
+            t['estado'] = 'atendido'
+            actualizado = True
+    guardar_turnos(turnos)
+
+    return jsonify({"success": actualizado})
+
+
+@app.route('/api/turnos_dia')
+def api_turnos_dia():
+    # Si no se pasa fecha, usa la de hoy
+    fecha = request.args.get('fecha', datetime.today().strftime('%Y-%m-%d'))
+
+    # Cargar turnos y asegurarse de que todos tengan 'estado'
+    turnos = cargar_turnos()
+    for t in turnos:
+        if 'estado' not in t:
+            t['estado'] = 'reservado'
+    guardar_turnos(turnos)
+
+    # Filtrar por la fecha seleccionada
+    turnos_dia = sorted([t for t in turnos if t['fecha'] == fecha], key=lambda x: x['hora'])
+    return jsonify(turnos_dia)
+
+# ====== PANEL PARA PROFESIONALES ======
+
+@app.route('/profesional')
+def profesional():
+    fecha = request.args.get('fecha', datetime.today().strftime('%Y-%m-%d'))
+    turnos = sorted([t for t in cargar_turnos() if t['fecha'] == fecha], key=lambda x: x['hora'])
+    return render_template('profesional.html', turnos=turnos, fecha=fecha)
+
+@app.route('/profesional.html')
+def profesional_html():
+    return redirect(url_for('profesional'))
 
 if __name__ == '__main__':
     app.run(debug=True)

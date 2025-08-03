@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <title>Turnos Reservados</title>
     <link rel="stylesheet" href="/static/style.css">
-
 </head>
 <body>
+
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
     <h1>Turnos Reservados</h1>
     <form action="{{ url_for('panel_admin') }}" method="get">
@@ -16,53 +16,74 @@
     </form>
 </div>
 
-    <form method="get" action="/ver_turnos">
-        <label for="fecha">Filtrar por fecha:</label>
-        <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro }}">
-        <button type="submit">Filtrar</button>
-        {% if fecha_filtro %}
-            <a href="/ver_turnos">Ver todos</a>
-        {% endif %}
-    </form>
+<form method="get" action="/ver_turnos">
+    <label for="fecha">Filtrar por fecha:</label>
+    <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro }}">
+    <button type="submit">Filtrar</button>
+    {% if fecha_filtro %}
+        <a href="/ver_turnos">Ver todos</a>
+    {% endif %}
+</form>
 
-    <table border="1">
-        <tr>
-            <th>DNI</th><th>Nombre</th><th>Teléfono</th><th>Fecha</th><th>Hora</th><th>Acción</th>
-        </tr>
-        {% for t in turnos %}
-        <tr>
-            <td>{{ t.dni }}</td>
-            <td>{{ t.nombre }}</td>
-            <td>{{ t.telefono }}</td>
-            <td>{{ t.fecha }}</td>
-            <td>{{ t.hora }}</td>
-            <td>
-                <form method="post" action="/borrar_turno">
-                    <input type="hidden" name="dni" value="{{ t.dni }}">
-                    <input type="hidden" name="fecha" value="{{ t.fecha }}">
-                    <input type="hidden" name="hora" value="{{ t.hora }}">
-                    <button type="submit">Borrar</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+<table border="1" style="width:100%; text-align:center;">
+<tr>
+    <th>DNI</th><th>Nombre</th><th>Teléfono</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acción</th>
+</tr>
+{% for t in turnos %}
+<tr style="background:{% if t.estado == 'en_sala' %}#FFD580{% else %}#E8F6F3{% endif %};">
+    <td>{{ t.dni }}</td>
+    <td>{{ t.nombre }}</td>
+    <td>{{ t.telefono }}</td>
+    <td>{{ t.fecha }}</td>
+    <td>{{ t.hora }}</td>
+    <td>
+    {% if t.estado == 'en_sala' %}
+        🟢 En Sala
+    {% elif t.estado == 'atendido' %}
+        ✅ Atendido
+    {% else %}
+        🔵 Reservado
+    {% endif %}
+</td>
+    <td>
+        <!-- ✅ Botón Marcar En Sala -->
+        <form method="post" action="/marcar_en_sala" style="display:inline;">
+            <input type="hidden" name="dni" value="{{ t.dni }}">
+            <input type="hidden" name="fecha" value="{{ t.fecha }}">
+            <input type="hidden" name="hora" value="{{ t.hora }}">
+            <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px; cursor:pointer;">
+                🟢 Marcar En Sala
+            </button>
+        </form>
+
+        <!-- ✅ Botón Borrar -->
+        <form method="post" action="/borrar_turno" style="display:inline;">
+            <input type="hidden" name="dni" value="{{ t.dni }}">
+            <input type="hidden" name="fecha" value="{{ t.fecha }}">
+            <input type="hidden" name="hora" value="{{ t.hora }}">
+            <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px; cursor:pointer;">
+                ❌ Borrar
+            </button>
+        </form>
+    </td>
+</tr>
+{% endfor %}
+</table>
 
 <hr>
 <h2 style="text-align:center; margin-top:30px;">➕ Asignar Turno Manual</h2>
 
 <div style="max-width:400px; margin:0 auto; background:#f9f9f9; padding:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-
     <form action="{{ url_for('asignar_turno') }}" method="post" style="display:flex; flex-direction:column; gap:10px;">
         <input type="text" name="dni" placeholder="DNI" required>
         <input type="text" name="nombre" placeholder="Nombre y Apellido" required>
         <input type="tel" name="telefono" placeholder="Teléfono" required>
         <input type="email" name="email" placeholder="Correo electrónico" required>
 
-        <label for="fecha">Seleccione Fecha:</label>
-        <input type="date" name="fecha" id="fecha_admin" required>
+        <label for="fecha_admin">Seleccione Fecha:</label>
+        <input type="text" name="fecha" id="fecha_admin" required>
 
-        <label for="hora">Seleccione Hora:</label>
+        <label for="hora_admin">Seleccione Hora:</label>
         <select name="hora" id="hora_admin" required></select>
 
         <button type="submit" style="background:#28a745; color:white; padding:10px; font-size:16px; border:none; border-radius:5px; cursor:pointer;">
@@ -72,28 +93,25 @@
 </div>
 
 <script>
-    document.getElementById('fecha_admin').addEventListener('change', function() {
-        const formData = new FormData();
-        formData.append('fecha', this.value);
-        fetch('/obtener_horarios', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            const select = document.getElementById('hora_admin');
-            select.innerHTML = '';
-            data.forEach(h => {
-                const opt = document.createElement('option');
-                opt.value = h;
-                opt.textContent = h;
-                select.appendChild(opt);
-            });
+document.getElementById('fecha_admin').addEventListener('change', function() {
+    const formData = new FormData();
+    formData.append('fecha', this.value);
+    fetch('/obtener_horarios', { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(data => {
+        const select = document.getElementById('hora_admin');
+        select.innerHTML = '';
+        data.forEach(h => {
+            const opt = document.createElement('option');
+            opt.value = h;
+            opt.textContent = h;
+            select.appendChild(opt);
         });
     });
+});
 </script>
 
-<!-- ✅ Librería Flatpickr -->
+<!-- ✅ Flatpickr -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
@@ -106,41 +124,16 @@ document.addEventListener('DOMContentLoaded', function() {
             dateFormat: "Y-m-d",
             disable: [
                 function(date) {
-                    return !fechas.includes(date.toISOString().split('T')[0]); // ❌ Deshabilita días sin turnos
+                    return !fechas.includes(date.toISOString().split('T')[0]);
                 }
             ],
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 const fecha = dayElem.dateObj.toISOString().split('T')[0];
                 if (fechas.includes(fecha)) {
-                    dayElem.style.backgroundColor = "#90EE90"; // ✅ verde si hay turnos
+                    dayElem.style.backgroundColor = "#90EE90";
                 } else {
-                    dayElem.style.backgroundColor = "#FFB6B6"; // ❌ rojo si no hay turnos
+                    dayElem.style.backgroundColor = "#FFB6B6";
                     dayElem.style.opacity = "0.5";
-                }
-            },
-            onChange: function(selectedDates, dateStr) {
-                if (dateStr) {
-                    const formData = new FormData();
-                    formData.append('fecha', dateStr);
-                    fetch('/obtener_horarios', { method: 'POST', body: formData })
-                        .then(res => res.json())
-                        .then(data => {
-                            const select = document.getElementById('hora_admin');
-                            select.innerHTML = '';
-                            if (data.length === 0) {
-                                const opt = document.createElement('option');
-                                opt.textContent = '❌ Sin horarios disponibles';
-                                opt.disabled = true;
-                                select.appendChild(opt);
-                            } else {
-                                data.forEach(h => {
-                                    const opt = document.createElement('option');
-                                    opt.value = h;
-                                    opt.textContent = h;
-                                    select.appendChild(opt);
-                                });
-                            }
-                        });
                 }
             }
         });
