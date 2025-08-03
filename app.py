@@ -265,14 +265,18 @@ def ver_turnos():
     turnos = sorted(turnos, key=lambda x: (x['fecha'], x['hora']))
     return render_template('admin.html', turnos=turnos, fecha_filtro=fecha_filtro)
 
+@app.route('/borrar_turno', methods=['POST'])
 def borrar_turno():
     if not session.get('admin'):
         return 'No autorizado', 403
+
     dni = request.form['dni']
     fecha = request.form['fecha']
     hora = request.form['hora']
+
     turnos = [t for t in cargar_turnos() if not (t['dni'] == dni and t['fecha'] == fecha and t['hora'] == hora)]
     guardar_turnos(turnos)
+
     return redirect(url_for('ver_turnos'))
 
 @app.route('/cancelar', methods=['GET', 'POST'])
