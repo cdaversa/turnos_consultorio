@@ -19,10 +19,10 @@
 
 <form method="get" action="/ver_turnos">
     <label for="fecha">Filtrar por fecha:</label>
-    <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro if fecha_filtro else '' }}">
+    <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro if (fecha_filtro and fecha_filtro != 'all') else '' }}">
     <button type="submit">Filtrar</button>
-    {% if fecha_filtro %}
-        <a href="/ver_turnos">Ver todos</a>
+    {% if fecha_filtro and fecha_filtro != 'all' %}
+    <a href="{{ url_for('ver_turnos', fecha='all') }}">Ver todos</a>
     {% endif %}
 </form>
 
@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function cargarTurnosAdmin() {
         const fechaFiltro = "{{ fecha_filtro if fecha_filtro else '' }}";
-        const url = (fechaFiltro && fechaFiltro.length > 0) 
+        const url = (fechaFiltro && fechaFiltro !== "all")
             ? `/api/turnos_dia?fecha=${fechaFiltro}` 
             : "/api/turnos_dia";
 

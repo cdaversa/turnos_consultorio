@@ -123,7 +123,7 @@ def generar_turnos_disponibles(fecha):
 
 def enviar_email(destinatario, fecha, hora, nombre, telefono=None, dni=None, copia_admin=False):
     if copia_admin:
-        asunto = "📢 Nuevo Turno Reservado - Consultorio Odontológico Zapiola"
+        asunto = "📢 Nuevo Turno Reservado - KL Dental"
         cuerpo = (f"Se ha reservado un nuevo turno.\n\n"
                   f"📌 Datos del paciente:\n"
                   f"👤 Nombre: {nombre}\n"
@@ -133,10 +133,10 @@ def enviar_email(destinatario, fecha, hora, nombre, telefono=None, dni=None, cop
                   f"📅 Fecha: {fecha}\n⏰ Hora: {hora}")
         destinatario_envio = get_smtp_config()[0]  # ✅ ahora se toma dinámico
     else:
-        asunto = "✅ Confirmación de Turno - Consultorio Odontológico Zapiola"
+        asunto = "✅ Confirmación de Turno - KL Dental"
         cuerpo = (f"Hola {nombre},\n\n"
                   f"Su turno ha sido reservado para el día {fecha} a las {hora}.\n"
-                  f"Consultorio Odontológico Zapiola\n"
+                  f"KL Dental\n"
                   f"Zapiola 1180 - Bernal Oeste\n"
                   f"📞 Tel: 11-2404-9424")
         destinatario_envio = destinatario
@@ -160,10 +160,10 @@ def enviar_email(destinatario, fecha, hora, nombre, telefono=None, dni=None, cop
 
 def enviar_email_cancelacion(destinatario, fecha, hora, nombre):
     smtp_user, smtp_pass = get_smtp_config()
-    asunto = "❌ Cancelación de Turno - Consultorio Odontológico Zapiola"
+    asunto = "❌ Cancelación de Turno - KL Dental"
     cuerpo = (f"Hola {nombre},\n\nSu turno para el día {fecha} a las {hora} ha sido cancelado correctamente.\n"
               f"Si desea solicitar uno nuevo, puede hacerlo desde nuestra web.\n\n"
-              f"Consultorio Odontológico Zapiola\nZapiola 1180 - Bernal Oeste\n📞 Tel: 11-2404-9424")
+              f"KL Dental\nZapiola 1180 - Bernal Oeste\n📞 Tel: 11-2404-9424")
 
     msg = MIMEMultipart()
     msg["From"] = smtp_user
@@ -249,14 +249,22 @@ def logout():
 def ver_turnos():
     if not session.get('admin'):
         return redirect(url_for('panel_admin'))
+
+    fecha_filtro = request.args.get('fecha')  # Puede ser None, fecha o 'all'
     turnos = cargar_turnos()
-    fecha_filtro = request.args.get('fecha')
-    if fecha_filtro:
+
+    if fecha_filtro is None:
+        # ✅ Si no hay parámetro, filtra solo turnos del día actual
+        fecha_filtro = datetime.today().strftime('%Y-%m-%d')
         turnos = [t for t in turnos if t['fecha'] == fecha_filtro]
+    elif fecha_filtro != "all":
+        # ✅ Si hay una fecha específica distinta de 'all', filtra esa fecha
+        turnos = [t for t in turnos if t['fecha'] == fecha_filtro]
+    # ✅ Si es 'all', no se aplica ningún filtro
+
     turnos = sorted(turnos, key=lambda x: (x['fecha'], x['hora']))
     return render_template('admin.html', turnos=turnos, fecha_filtro=fecha_filtro)
 
-@app.route('/borrar_turno', methods=['POST'])
 def borrar_turno():
     if not session.get('admin'):
         return 'No autorizado', 403
