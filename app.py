@@ -328,5 +328,35 @@ def dias_disponibles():
             fechas_disponibles.add(fecha)
     return jsonify(list(fechas_disponibles))
 
+@app.route('/asignar_turno', methods=['POST'])
+def asignar_turno():
+    if not session.get('admin'):
+        return redirect(url_for('panel_admin'))
+
+    nuevo_turno = {
+        'dni': request.form['dni'],
+        'nombre': request.form['nombre'],
+        'telefono': request.form['telefono'],
+        'email': request.form['email'],
+        'fecha': request.form['fecha'],
+        'hora': request.form['hora']
+    }
+
+    turnos = cargar_turnos()
+    if any(t['fecha'] == nuevo_turno['fecha'] and t['hora'] == nuevo_turno['hora'] for t in turnos):
+        return "⚠️ Ese turno ya está reservado", 400
+
+    turnos.append(nuevo_turno)
+    guardar_turnos(turnos)
+
+    # ✅ Email al paciente
+    enviar_email(nuevo_turno['email'], nuevo_turno['fecha'], nuevo_turno['hora'], nuevo_turno['nombre'])
+
+    # ✅ Copia al administrador
+    enviar_email(nuevo_turno['email'], nuevo_turno['fecha'], nuevo_turno['hora'], nuevo_turno['nombre'],
+                 telefono=nuevo_turno['telefono'], dni=nuevo_turno['dni'], copia_admin=True)
+
+    return redirect(url_for('ver_turnos'))
+
 if __name__ == '__main__':
     app.run(debug=True)

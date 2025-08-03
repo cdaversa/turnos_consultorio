@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignar Turno (Admin)</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h1>Asignar Turno Manual</h1>
+        <form action="{{ url_for('panel_admin') }}" method="get">
+            <button type="submit" style="width:150px; padding:10px; font-size:18px; border-radius:5px;">
+                Volver
+            </button>
+        </form>
+    </div>
+
+    <form action="{{ url_for('asignar_turno') }}" method="post">
+        <input type="text" name="dni" placeholder="DNI" required>
+        <input type="text" name="nombre" placeholder="Nombre y Apellido" required>
+        <input type="tel" name="telefono" placeholder="Teléfono" required>
+        <input type="email" name="email" placeholder="Correo electrónico" required>
+        <input type="date" name="fecha" required>
+        <input type="time" name="hora" required>
+        <button type="submit">Asignar Turno</button>
+    </form>
+</body>
+</html>

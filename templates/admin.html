@@ -47,5 +47,50 @@
         </tr>
         {% endfor %}
     </table>
+
+<hr>
+<h2 style="text-align:center; margin-top:30px;">➕ Asignar Turno Manual</h2>
+
+<div style="max-width:400px; margin:0 auto; background:#f9f9f9; padding:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+
+    <form action="{{ url_for('asignar_turno') }}" method="post" style="display:flex; flex-direction:column; gap:10px;">
+        <input type="text" name="dni" placeholder="DNI" required>
+        <input type="text" name="nombre" placeholder="Nombre y Apellido" required>
+        <input type="tel" name="telefono" placeholder="Teléfono" required>
+        <input type="email" name="email" placeholder="Correo electrónico" required>
+
+        <label for="fecha">Seleccione Fecha:</label>
+        <input type="date" name="fecha" id="fecha_admin" required>
+
+        <label for="hora">Seleccione Hora:</label>
+        <select name="hora" id="hora_admin" required></select>
+
+        <button type="submit" style="background:#28a745; color:white; padding:10px; font-size:16px; border:none; border-radius:5px; cursor:pointer;">
+            ✅ Asignar Turno
+        </button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('fecha_admin').addEventListener('change', function() {
+        const formData = new FormData();
+        formData.append('fecha', this.value);
+        fetch('/obtener_horarios', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById('hora_admin');
+            select.innerHTML = '';
+            data.forEach(h => {
+                const opt = document.createElement('option');
+                opt.value = h;
+                opt.textContent = h;
+                select.appendChild(opt);
+            });
+        });
+    });
+</script>
 </body>
 </html>
