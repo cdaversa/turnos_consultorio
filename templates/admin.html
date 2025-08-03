@@ -92,5 +92,61 @@
         });
     });
 </script>
+
+<!-- ✅ Librería Flatpickr -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/dias_disponibles')
+    .then(res => res.json())
+    .then(fechas => {
+        flatpickr("#fecha_admin", {
+            dateFormat: "Y-m-d",
+            disable: [
+                function(date) {
+                    return !fechas.includes(date.toISOString().split('T')[0]); // ❌ Deshabilita días sin turnos
+                }
+            ],
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const fecha = dayElem.dateObj.toISOString().split('T')[0];
+                if (fechas.includes(fecha)) {
+                    dayElem.style.backgroundColor = "#90EE90"; // ✅ verde si hay turnos
+                } else {
+                    dayElem.style.backgroundColor = "#FFB6B6"; // ❌ rojo si no hay turnos
+                    dayElem.style.opacity = "0.5";
+                }
+            },
+            onChange: function(selectedDates, dateStr) {
+                if (dateStr) {
+                    const formData = new FormData();
+                    formData.append('fecha', dateStr);
+                    fetch('/obtener_horarios', { method: 'POST', body: formData })
+                        .then(res => res.json())
+                        .then(data => {
+                            const select = document.getElementById('hora_admin');
+                            select.innerHTML = '';
+                            if (data.length === 0) {
+                                const opt = document.createElement('option');
+                                opt.textContent = '❌ Sin horarios disponibles';
+                                opt.disabled = true;
+                                select.appendChild(opt);
+                            } else {
+                                data.forEach(h => {
+                                    const opt = document.createElement('option');
+                                    opt.value = h;
+                                    opt.textContent = h;
+                                    select.appendChild(opt);
+                                });
+                            }
+                        });
+                }
+            }
+        });
+    });
+});
+</script>
+
 </body>
 </html>
