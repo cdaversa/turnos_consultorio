@@ -1,8 +1,15 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from datetime import datetime, timedelta
-import json, os, smtplib, sqlite3
+import json, os, smtplib, sqlite3, pytz
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+# ====== FUNCION DE FECHA CON ZONA HORARIA ======
+def fecha_hoy():
+    tz = pytz.timezone("America/Argentina/Buenos_Aires")
+    return datetime.now(tz).date()
+
+# ====== CONFIGURACION INICIAL ======
 
 EMAIL_USER = "daversa1988@gmail.com"
 EMAIL_PASS = "eiiy veto dopc jprm"  # ⚠️ Contraseña de aplicación de Gmail
@@ -214,7 +221,7 @@ def ver_turnos():
     if not session.get('admin'): return redirect(url_for('panel_admin'))
     f = request.args.get('fecha')
     ts = cargar_turnos()
-    if f is None: f=datetime.today().strftime('%Y-%m-%d'); ts=[t for t in ts if t['fecha']==f]
+    if f is None: f=fecha_hoy().strftime('%Y-%m-%d'); ts=[t for t in ts if t['fecha']==f]
     elif f!="all": ts=[t for t in ts if t['fecha']==f]
     ts = sorted(ts,key=lambda x:(x['fecha'],x['hora']))
     return render_template('admin.html',turnos=ts,fecha_filtro=f)
@@ -266,7 +273,7 @@ def configuracion():
 
 @app.route('/dias_disponibles')
 def dias_disponibles():
-    h=datetime.today().date(); r=365; f=set(); horarios=cargar_config()['horarios_atencion']
+    h=fecha_hoy(); r=365; f=set(); horarios=cargar_config()['horarios_atencion']
     m={'monday':'lunes','tuesday':'martes','wednesday':'miércoles','thursday':'jueves','friday':'viernes','saturday':'sábado','sunday':'domingo'}
     for i in range(r):
         fd=(h+timedelta(days=i)).strftime('%Y-%m-%d'); d=m[(h+timedelta(days=i)).strftime('%A').lower()]
@@ -298,7 +305,7 @@ def api_turnos_dia():
 @app.route('/profesional',methods=['GET','POST'])
 def profesional():
     if not session.get('profesional'): return redirect(url_for('profesional_login'))
-    f=request.args.get('fecha',datetime.today().strftime('%Y-%m-%d'))
+    f=request.args.get('fecha',fecha_hoy().strftime('%Y-%m-%d'))
     return render_template('profesional.html',turnos=sorted([t for t in cargar_turnos() if t['fecha']==f],key=lambda x:x['hora']),fecha=f)
 
 @app.route('/profesional_login',methods=['GET','POST'])
