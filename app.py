@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session, send_file
 from datetime import datetime, timedelta
 import json, os, smtplib, sqlite3, pytz
 from email.mime.text import MIMEText
@@ -319,5 +319,29 @@ def profesional_login():
 
 @app.route('/logout_profesional')
 def logout_profesional(): session.pop('profesional',None); return redirect(url_for('profesional_login'))
+
+# ====== BACKUP ======
+
+@app.route('/backup_db', methods=['GET'])
+def backup_db():
+    if not session.get('admin'):
+        return redirect(url_for('panel_admin'))
+
+    # Carpeta donde se guardarán los backups
+    backup_folder = "backups"
+    os.makedirs(backup_folder, exist_ok=True)
+
+    # Nombre del archivo con fecha y hora
+    from datetime import datetime
+    fecha = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    backup_path = os.path.join(backup_folder, f"backup_{fecha}.db")
+
+    # Copiar base de datos actual
+    import shutil
+    shutil.copyfile(DB_FILE, backup_path)
+
+    # Enviar archivo al navegador
+    return send_file(backup_path, as_attachment=True, download_name=f"turnos_backup_{fecha}.db")
+
 
 if __name__=='__main__': app.run(debug=True)

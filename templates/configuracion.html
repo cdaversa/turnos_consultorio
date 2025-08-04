@@ -51,7 +51,6 @@
         {% endfor %}
 
         <hr>
-
         <h2>Intervalo de Turnos</h2>
         <label>Duración (min):</label>
         <input type="number" name="intervalo_turnos" min="5" step="5" value="{{ intervalo }}" required>
@@ -80,7 +79,6 @@
         <h2>Feriados y Vacaciones</h2>
         <input type="hidden" name="accion" value="guardar_feriados">
 
-        <!-- ✅ Feriados -->
         <h3>📅 Feriados</h3>
         <div id="feriados-container">
             {% for f in cfg.feriados %}
@@ -99,7 +97,6 @@
 
         <hr>
 
-        <!-- ✅ Vacaciones -->
         <h3>🏖️ Vacaciones</h3>
         <div id="vacaciones-container">
             {% for v in cfg.get('vacaciones', []) %}
@@ -120,7 +117,17 @@
 
         <hr>
         <button type="submit">Guardar Feriados y Vacaciones</button>
-    </form>
+    </form> <!-- ✅ Cierre correcto -->
+
+    <hr>
+
+    <!-- ✅ Backup de la Base de Datos -->
+    <h2>💾 Backup de Base de Datos</h2>
+    <p>Puedes descargar una copia de seguridad de todos los turnos guardados.</p>
+    <a href="{{ url_for('backup_db') }}" 
+       style="display:inline-block; padding:10px 20px; background:#007BFF; color:white; text-decoration:none; border-radius:5px;">
+       📥 Descargar Backup
+    </a>
 
     <script>
         function agregarFeriado() {
