@@ -382,18 +382,25 @@ def dias_disponibles():
     fechas_disponibles = set()
     cfg = cargar_config()
     horarios_cfg = cfg.get('horarios_atencion', HORARIOS_ATENCION)
+    
     hoy = datetime.today().date()
-    for i in range(60):
-        fecha = (hoy + timedelta(days=i)).strftime('%Y-%m-%d')
-        dia_nombre = (hoy + timedelta(days=i)).strftime('%A').lower()
+    RANGO_DIAS = 365  # ✅ ahora permite turnos hasta un año
+    
+    for i in range(RANGO_DIAS):
+        fecha_dt = hoy + timedelta(days=i)
+        fecha = fecha_dt.strftime('%Y-%m-%d')
+        dia_nombre = fecha_dt.strftime('%A').lower()
+        
         dia_map = {
-            'monday':'lunes','tuesday':'martes','wednesday':'miércoles','thursday':'jueves',
-            'friday':'viernes','saturday':'sábado','sunday':'domingo'
+            'monday': 'lunes', 'tuesday': 'martes', 'wednesday': 'miércoles',
+            'thursday': 'jueves', 'friday': 'viernes', 'saturday': 'sábado', 'sunday': 'domingo'
         }
         dia = dia_map.get(dia_nombre, '')
+        
         if dia in horarios_cfg and generar_turnos_disponibles(fecha):
             fechas_disponibles.add(fecha)
-    return jsonify(list(fechas_disponibles))
+
+    return jsonify(sorted(list(fechas_disponibles)))
 
 @app.route('/asignar_turno', methods=['POST'])
 def asignar_turno():

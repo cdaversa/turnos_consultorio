@@ -41,6 +41,13 @@
   "smtp_email": "kl.dental.bernal@gmail.com",
   "smtp_password": "kwdl brlz iktm ycec",
   "profesional_password": "Karina1992",
-  "feriados": [],
+  "feriados": [
+    "2025-08-15",
+    "2025-11-21",
+    "2025-11-24",
+    "2025-12-08",
+    "2025-12-25",
+    "2026-01-01"
+  ],
   "vacaciones": []
 }
