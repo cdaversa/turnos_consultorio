@@ -17,13 +17,14 @@
         </form>
     </div>
 
-    <!-- ✅ Cambiar contraseña -->
+    <!-- ✅ Claves -->
     <form method="post">
         <h2>Cambiar Clave de Administrador</h2>
         <input type="hidden" name="accion" value="cambiar_clave">
         <input type="password" name="nueva_clave" placeholder="Nueva clave" required>
         <button type="submit">Guardar Clave</button>
     </form>
+
     <form method="post">
         <h2>Cambiar Clave del Profesional</h2>
         <input type="hidden" name="accion" value="cambiar_clave_profesional">
@@ -33,7 +34,7 @@
 
     <hr>
 
-    <!-- ✅ Configurar horarios e intervalo -->
+    <!-- ✅ Horarios -->
     <form method="post">
         <input type="hidden" name="accion" value="guardar_horarios">
         <h2>Configurar Horarios de Atención</h2>
@@ -51,8 +52,8 @@
 
         <hr>
 
-        <h2>Configurar Intervalo de Turnos</h2>
-        <label>Duración de cada turno (minutos):</label>
+        <h2>Intervalo de Turnos</h2>
+        <label>Duración (min):</label>
         <input type="number" name="intervalo_turnos" min="5" step="5" value="{{ intervalo }}" required>
 
         <hr>
@@ -61,7 +62,7 @@
 
     <hr>
 
-    <!-- ✅ NUEVO: Configurar SMTP -->
+    <!-- ✅ SMTP -->
     <form method="post">
         <h2>Configuración del Email SMTP</h2>
         <input type="hidden" name="accion" value="guardar_smtp">
@@ -71,6 +72,73 @@
         <input type="password" name="smtp_password" placeholder="••••••" value="{{ pass_smtp }}" required>
         <button type="submit">Guardar Configuración SMTP</button>
     </form>
+
+    <hr>
+
+    <!-- ✅ Feriados y Vacaciones con Calendario -->
+    <form method="post">
+        <h2>Feriados y Vacaciones</h2>
+        <input type="hidden" name="accion" value="guardar_feriados">
+
+        <!-- ✅ Feriados -->
+        <h3>📅 Feriados</h3>
+        <div id="feriados-container">
+            {% for f in cfg.feriados %}
+            <div class="feriado-item">
+                <input type="date" name="feriados" value="{{ f }}">
+                <button type="button" onclick="this.parentNode.remove()">❌</button>
+            </div>
+            {% endfor %}
+            {% if not cfg.feriados %}
+            <div class="feriado-item">
+                <input type="date" name="feriados">
+            </div>
+            {% endif %}
+        </div>
+        <button type="button" onclick="agregarFeriado()">➕ Agregar Feriado</button>
+
+        <hr>
+
+        <!-- ✅ Vacaciones -->
+        <h3>🏖️ Vacaciones</h3>
+        <div id="vacaciones-container">
+            {% for v in cfg.get('vacaciones', []) %}
+            <div class="vacacion-item">
+                Inicio: <input type="date" name="vacaciones_inicio" value="{{ v.inicio }}">
+                Fin: <input type="date" name="vacaciones_fin" value="{{ v.fin }}">
+                <button type="button" onclick="this.parentNode.remove()">❌</button>
+            </div>
+            {% endfor %}
+            {% if not cfg.get('vacaciones') %}
+            <div class="vacacion-item">
+                Inicio: <input type="date" name="vacaciones_inicio">
+                Fin: <input type="date" name="vacaciones_fin">
+            </div>
+            {% endif %}
+        </div>
+        <button type="button" onclick="agregarVacacion()">➕ Agregar Rango de Vacaciones</button>
+
+        <hr>
+        <button type="submit">Guardar Feriados y Vacaciones</button>
+    </form>
+
+    <script>
+        function agregarFeriado() {
+            const cont = document.getElementById("feriados-container");
+            const div = document.createElement("div");
+            div.classList.add("feriado-item");
+            div.innerHTML = '<input type="date" name="feriados"> <button type="button" onclick="this.parentNode.remove()">❌</button>';
+            cont.appendChild(div);
+        }
+
+        function agregarVacacion() {
+            const cont = document.getElementById("vacaciones-container");
+            const div = document.createElement("div");
+            div.classList.add("vacacion-item");
+            div.innerHTML = 'Inicio: <input type="date" name="vacaciones_inicio"> Fin: <input type="date" name="vacaciones_fin"> <button type="button" onclick="this.parentNode.remove()">❌</button>';
+            cont.appendChild(div);
+        }
+    </script>
 
 </body>
 </html>

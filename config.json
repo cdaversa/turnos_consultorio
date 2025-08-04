@@ -1,10 +1,10 @@
 {
-  "admin_password": "admin123",
-  "intervalo_turnos": 15,
+  "admin_password": "Karina1992",
+  "intervalo_turnos": 30,
   "horarios_atencion": {
     "lunes": [
       "10:00",
-      "17:00",
+      "17:30",
       true
     ],
     "martes": [
@@ -15,20 +15,20 @@
     "miércoles": [
       "10:00",
       "17:00",
-      true
+      false
     ],
     "jueves": [
       "10:00",
-      "17:00",
+      "17:30",
       true
     ],
     "viernes": [
-      "10:00",
-      "17:00",
+      "11:00",
+      "18:00",
       true
     ],
     "sábado": [
-      "10:00",
+      "09:30",
       "13:00",
       true
     ],
@@ -38,7 +38,9 @@
       false
     ]
   },
-  "smtp_email": "consultorioodontologicozapiola@gmail.com",
-  "smtp_password": "nkej nxup gjdo ujxb",
-  "profesional_password": "profesional1234"
+  "smtp_email": "kl.dental.bernal@gmail.com",
+  "smtp_password": "kwdl brlz iktm ycec",
+  "profesional_password": "Karina1992",
+  "feriados": [],
+  "vacaciones": []
 }

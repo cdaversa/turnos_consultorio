@@ -27,11 +27,13 @@ HORARIOS_ATENCION = {
 CONFIG_FILE = 'config.json'
 CONFIG_DEFAULT = {
     "admin_password": ADMIN_PASSWORD,
-    "profesional_password": "prof123",  # ✅ clave por defecto para el profesional
+    "profesional_password": "prof123",
     "intervalo_turnos": 15,
     "horarios_atencion": {d: [h[0], h[1], True] for d, h in HORARIOS_ATENCION.items()},
     "smtp_email": EMAIL_USER,
-    "smtp_password": EMAIL_PASS
+    "smtp_password": EMAIL_PASS,
+    "feriados": [],
+    "vacaciones": []
 }
 
 # ====== CREACIÓN AUTOMÁTICA DE CONFIG.JSON ======
@@ -54,17 +56,17 @@ else:
 
 def cargar_turnos():
     if not os.path.exists(TURNOS_FILE):
-        guardar_turnos([])       # ✅ crear archivo vacío válido
+        guardar_turnos([])
         return []
     try:
         with open(TURNOS_FILE, 'r', encoding='utf-8') as f:
             contenido = f.read().strip()
             if not contenido:
-                guardar_turnos([])   # ✅ reescribir archivo vacío con lista vacía
+                guardar_turnos([])
                 return []
             return json.loads(contenido)
     except json.JSONDecodeError:
-        guardar_turnos([])           # ✅ si está corrupto, lo repara
+        guardar_turnos([])
         return []
 
 def guardar_turnos(turnos):
@@ -83,9 +85,31 @@ def get_smtp_config():
     cfg = cargar_config()
     return cfg.get('smtp_email', EMAIL_USER), cfg.get('smtp_password', EMAIL_PASS)
 
+# ====== VERIFICAR SI UNA FECHA ES FERIADO O VACACIONES ======
+
+def es_feriado(fecha):
+    cfg = cargar_config()
+    return fecha in cfg.get("feriados", [])
+
+def es_vacaciones(fecha):
+    cfg = cargar_config()
+    fecha_dt = datetime.strptime(fecha, "%Y-%m-%d").date()
+    for rango in cfg.get("vacaciones", []):
+        try:
+            inicio = datetime.strptime(rango["inicio"], "%Y-%m-%d").date()
+            fin = datetime.strptime(rango["fin"], "%Y-%m-%d").date()
+            if inicio <= fecha_dt <= fin:
+                return True
+        except Exception:
+            continue
+    return False
+
 # ====== GENERAR TURNOS DISPONIBLES ======
 
 def generar_turnos_disponibles(fecha):
+    if es_feriado(fecha) or es_vacaciones(fecha):
+        return []
+
     cfg = cargar_config()
     horarios_cfg = cfg.get('horarios_atencion', {})
     intervalo = cfg.get('intervalo_turnos', 15)
@@ -309,11 +333,12 @@ def configuracion():
         return redirect(url_for('panel_admin'))
 
     cfg = cargar_config()
+
     if request.method == 'POST':
         accion = request.form.get('accion')
         if accion == 'cambiar_clave':
             cfg['admin_password'] = request.form['nueva_clave']
-        elif accion == 'cambiar_clave_profesional':   # ✅ agregado
+        elif accion == 'cambiar_clave_profesional':
             cfg['profesional_password'] = request.form['nueva_clave_profesional']
         elif accion == 'guardar_horarios':
             nuevos = {}
@@ -327,14 +352,29 @@ def configuracion():
         elif accion == 'guardar_smtp':
             cfg['smtp_email'] = request.form.get('smtp_email')
             cfg['smtp_password'] = request.form.get('smtp_password')
-        
-        guardar_config(cfg)   # ✅ se asegura que se guarde cualquier cambio
+        elif accion == 'guardar_feriados':
+            # ✅ Guardar feriados
+            feriados = request.form.getlist('feriados')
+            feriados = [f for f in feriados if f]
+            cfg['feriados'] = feriados
+
+            # ✅ Guardar vacaciones
+            inicios = request.form.getlist('vacaciones_inicio')
+            fines = request.form.getlist('vacaciones_fin')
+            vacaciones = []
+            for i in range(len(inicios)):
+                if inicios[i] and fines[i]:
+                    vacaciones.append({"inicio": inicios[i], "fin": fines[i]})
+            cfg['vacaciones'] = vacaciones
+
+        guardar_config(cfg)
 
     return render_template('configuracion.html',
                            horarios=cfg.get('horarios_atencion', {}),
                            intervalo=cfg.get('intervalo_turnos', 15),
                            email_smtp=cfg.get('smtp_email', ''),
-                           pass_smtp=cfg.get('smtp_password', ''))
+                           pass_smtp=cfg.get('smtp_password', ''),
+                           cfg=cfg)
 
 @app.route('/dias_disponibles')
 def dias_disponibles():
