@@ -37,7 +37,13 @@
         <tr style="background:{% if t.estado == 'atendido' %}#C6F6C6{% elif t.estado == 'en_sala' %}#FFD580{% else %}#E8F6F3{% endif %};">
             <td>{{ t.dni }}</td>
             <td>{{ t.nombre }}</td>
-            <td>{{ t.telefono }}</td>
+            <td>
+  <a href="https://wa.me/{{ t.telefono }}?text={{ ('Le recordamos que tiene un turno para el día ' ~ t.fecha ~ ' en el horario ' ~ t.hora ~ ' en Zapiola 1180, Bernal Oeste. Gracias, KL Dental.')|urlencode }}"
+     target="_blank"
+     style="color:green; font-weight:bold; text-decoration:none;">
+     {{ t.telefono }}
+  </a>
+</td>
             <td>{{ t.fecha }}</td>
             <td>{{ t.hora }}</td>
             <td>
@@ -164,7 +170,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 tr.innerHTML = `
                     <td>${t.dni}</td>
                     <td>${t.nombre}</td>
-                    <td>${t.telefono}</td>
+                    <td>
+    <a href="https://wa.me/${t.telefono}?text=${encodeURIComponent('Le recordamos que tiene un turno para el día ' + t.fecha + ' en el horario ' + t.hora + ' en Zapiola 1180, Bernal Oeste. Gracias, KL Dental.')}" 
+       target="_blank" 
+       style="color:green; font-weight:bold; text-decoration:none;">
+       ${t.telefono}
+    </a>
+</td>
                     <td>${t.fecha}</td>
                     <td>${normalizarHora(t.hora)}</td>
                     <td>${t.estado === "atendido" ? "✅ Atendido" : 

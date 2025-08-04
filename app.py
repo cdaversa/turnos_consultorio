@@ -115,15 +115,52 @@ def get_smtp_config():
 
 def enviar_email(destinatario, fecha, hora, nombre, telefono=None, dni=None, copia_admin=False):
     asunto = "✅ Confirmación de Turno - KL Dental" if not copia_admin else "📢 Nuevo Turno Reservado - KL Dental"
-    cuerpo = (f"Hola {nombre}, su turno ha sido reservado para el día {fecha} a las {hora}."
-              if not copia_admin else
-              f"Se reservó un turno para:\n👤 {nombre}\n🆔 {dni}\n📞 {telefono}\n📅 {fecha} ⏰ {hora}")
+    
+    # 🔹 URL de cancelación
+    cancel_url = f"https://www.kldental.com.ar/cancelar"
+
+    # 🔹 Cuerpo en texto plano (backup para clientes que no aceptan HTML)
+    cuerpo_texto = (f"Hola {nombre}, su turno ha sido reservado para el día {fecha} a las {hora}.\n\n"
+                    f"Si desea cancelar su turno, puede hacerlo aquí: {cancel_url}"
+                    if not copia_admin else
+                    f"Se reservó un turno para:\n👤 {nombre}\n🆔 {dni}\n📞 {telefono}\n📅 {fecha} ⏰ {hora}")
+
+    # 🔹 Cuerpo HTML con botón de cancelación
+    cuerpo_html = (f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.5;">
+        <h2>✅ Confirmación de Turno - KL Dental</h2>
+        <p>Hola <b>{nombre}</b>,</p>
+        <p>Su turno ha sido reservado para el día <b>{fecha}</b> a las <b>{hora}</b>.</p>
+        <p>Si no puede asistir, puede cancelar su turno haciendo clic en el siguiente botón:</p>
+        <p>
+            <a href="{cancel_url}" 
+               style="background:#dc3545; color:white; padding:10px 15px; text-decoration:none; border-radius:5px;">
+               ❌ Cancelar Turno
+            </a>
+        </p>
+        <p>Gracias por elegir KL Dental.</p>
+    </body>
+    </html>
+    """ if not copia_admin else 
+    f"""<html><body>
+        <h3>📢 Nuevo Turno Reservado - KL Dental</h3>
+        <p><b>Paciente:</b> {nombre}</p>
+        <p><b>DNI:</b> {dni}</p>
+        <p><b>Teléfono:</b> {telefono}</p>
+        <p><b>Fecha:</b> {fecha} ⏰ {hora}</p>
+    </body></html>""")
+
     smtp_user, smtp_pass = get_smtp_config()
-    msg = MIMEMultipart()
+    msg = MIMEMultipart("alternative")
     msg["From"] = smtp_user
     msg["To"] = destinatario if not copia_admin else smtp_user
     msg["Subject"] = asunto
-    msg.attach(MIMEText(cuerpo, "plain"))
+
+    # ✅ Adjuntamos versión texto y versión HTML
+    msg.attach(MIMEText(cuerpo_texto, "plain"))
+    msg.attach(MIMEText(cuerpo_html, "html"))
+
     try:
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
             server.starttls()
