@@ -1,10 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+import pytz
 import json
 import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+# ====== ZONA HORARIA ARGENTINA ======
+TZ = pytz.timezone("America/Argentina/Buenos_Aires")
+def hoy_arg():
+    """Devuelve la fecha de hoy según horario de Argentina"""
+    return datetime.now(TZ).date()
 
 EMAIL_USER = "daversa1988@gmail.com"
 EMAIL_PASS = "eiiy veto dopc jprm"  # ⚠️ Contraseña de aplicación de Gmail
@@ -279,7 +286,7 @@ def ver_turnos():
 
     if fecha_filtro is None:
         # ✅ Si no hay parámetro, filtra solo turnos del día actual
-        fecha_filtro = datetime.today().strftime('%Y-%m-%d')
+        fecha_filtro = hoy_arg().strftime('%Y-%m-%d')
         turnos = [t for t in turnos if t['fecha'] == fecha_filtro]
     elif fecha_filtro != "all":
         # ✅ Si hay una fecha específica distinta de 'all', filtra esa fecha
@@ -383,7 +390,7 @@ def dias_disponibles():
     cfg = cargar_config()
     horarios_cfg = cfg.get('horarios_atencion', HORARIOS_ATENCION)
     
-    hoy = datetime.today().date()
+    hoy = hoy_arg()
     RANGO_DIAS = 365  # ✅ ahora permite turnos hasta un año
     
     for i in range(RANGO_DIAS):
@@ -492,7 +499,7 @@ def profesional():
     if not session.get('profesional'):
         return redirect(url_for('profesional_login'))
 
-    fecha = request.args.get('fecha', datetime.today().strftime('%Y-%m-%d'))
+    fecha = request.args.get('fecha', hoy_arg().strftime('%Y-%m-%d'))
     turnos = sorted([t for t in cargar_turnos() if t['fecha'] == fecha], key=lambda x: x['hora'])
     return render_template('profesional.html', turnos=turnos, fecha=fecha)
 
