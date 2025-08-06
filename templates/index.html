@@ -2,9 +2,26 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ clave para móviles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reservar Turno</title>
     <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+      /* ✅ SOLO en pantallas grandes (PC) */
+      @media (min-width: 992px) {
+        body {
+          font-size: 0.85rem; /* 🔹 Reduce tamaño general */
+        }
+        h1 { font-size: 1.6rem; }
+        h2 { font-size: 1.2rem; }
+        h3 { font-size: 1rem; }
+        h4 { font-size: 0.9rem; }
+        input, select, button {
+          font-size: 0.8rem;
+          padding: 0.3rem 0.5rem;
+        }
+      }
+    </style>
 </head>
 <body class="fondo-dientes">
     <div style="text-align:center; margin-bottom:20px;">
@@ -16,21 +33,21 @@
     </div>
 
     <div style="text-align:center; margin-top:10px;">
-    	<form action="/reservar" method="post">
-        <input type="text" name="dni" placeholder="DNI" required>
-        <input type="text" name="nombre" placeholder="Nombre y Apellido" required>
-        <input type="tel" name="telefono" placeholder="Teléfono" required>
-        <input type="email" name="email" placeholder="Correo electrónico" required> <!-- ✅ Nuevo campo -->
-        
-        <h3>Seleccione fecha</h3>
-        <input type="text" name="fecha" id="fecha" required placeholder="Seleccione fecha">
-        
-        <h3>Seleccione hora</h3>
-        <select name="hora" id="hora" required></select>
-        
-        <button type="submit">Reservar</button>
-    </form>
-   </div>
+        <form action="/reservar" method="post">
+            <input type="text" name="dni" placeholder="DNI" required>
+            <input type="text" name="nombre" placeholder="Nombre y Apellido" required>
+            <input type="tel" name="telefono" placeholder="Teléfono" required>
+            <input type="email" name="email" placeholder="Correo electrónico" required>
+            
+            <h3>Seleccione fecha</h3>
+            <input type="text" name="fecha" id="fecha" required placeholder="Seleccione fecha">
+            
+            <h3>Seleccione hora</h3>
+            <select name="hora" id="hora" required></select>
+            
+            <button type="submit">Reservar</button>
+        </form>
+    </div>
 
     <div style="text-align:center; margin-top:10px;">
         <form action="{{ url_for('cancelar') }}" method="get">
@@ -57,29 +74,28 @@
         });
     </script>
 
-<!-- ✅ Librería Flatpickr -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('/dias_disponibles')
-    .then(res => res.json())
-    .then(fechas => {
-        flatpickr("#fecha", {
-            dateFormat: "Y-m-d",
-            onDayCreate: function(dObj, dStr, fp, dayElem) {
-                const fecha = dayElem.dateObj.toISOString().split('T')[0];
-                if (fechas.includes(fecha)) {
-                    dayElem.style.backgroundColor = "#90EE90"; // ✅ verde (hay turnos)
-                } else {
-                    dayElem.style.backgroundColor = "#FFB6B6"; // ❌ rojo (sin turnos)
-                    dayElem.style.opacity = "0.5";
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/dias_disponibles')
+        .then(res => res.json())
+        .then(fechas => {
+            flatpickr("#fecha", {
+                dateFormat: "Y-m-d",
+                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                    const fecha = dayElem.dateObj.toISOString().split('T')[0];
+                    if (fechas.includes(fecha)) {
+                        dayElem.style.backgroundColor = "#90EE90";
+                    } else {
+                        dayElem.style.backgroundColor = "#FFB6B6";
+                        dayElem.style.opacity = "0.5";
+                    }
                 }
-            }
+            });
         });
     });
-});
-</script>
+    </script>
 </body>
 </html>
