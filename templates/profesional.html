@@ -5,7 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Profesional</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; text-align: center; position: relative; }
+        body.fondo-dientes {
+            background: url('/static/fondo_dientes4.jpg') repeat center center;
+            background-size: auto; /* mantiene tamaño original */
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            position: relative;
+        }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
         th { background: #007BFF; color: white; }
@@ -18,7 +27,7 @@
         .logout-btn:hover { background: #b52b37; }
     </style>
 </head>
-<body>
+<body class="fondo-dientes">
 
 <a href="{{ url_for('logout_profesional') }}" class="logout-btn">🚪 Cerrar Sesión</a>
 

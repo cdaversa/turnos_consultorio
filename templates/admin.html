@@ -5,21 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turnos Reservados</title>
     <link rel="stylesheet" href="/static/style.css">
+
 <style>
-  /* 🔹 SOLO en pantallas grandes (PC) */
+  body.fondo-dientes {
+      background: url('/static/fondo_dientes4.jpg') repeat center center;
+      background-size: auto; /* mantiene tamaño original */
+      font-family: Arial, sans-serif;
+      color: #333;
+      margin: 0;
+      padding: 0;
+  }
+
   @media (min-width: 992px) {
-    body { font-size: 1rem !important; }     /* texto general */
-    h1 { font-size: 2rem !important; }       /* título principal */
+    body { font-size: 1rem !important; }
+    h1 { font-size: 2rem !important; }
     h2 { font-size: 1.5rem !important; }
-    table { font-size: 0.95rem !important; }   /* texto de tabla */
-    th, td { padding: 3px 5px !important; }    /* menos espacio en celdas */
+    table { font-size: 0.95rem !important; }
+    th, td { padding: 3px 5px !important; }
     button { font-size: 1rem !important; padding: 4px 7px !important; }
     input, select, label { font-size: 0.75rem !important; }
   }
 
+  /* ✅ Estilo contenedor Asignar Turno Manual */
+  .form-container {
+      background: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: 0 auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      text-align: center;
+  }
+  .form-container h2 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+  }
+  .form-container label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+      text-align: left;
+  }
+  .form-container input,
+  .form-container select {
+      width: 100%;
+      max-width: 300px;
+      padding: 10px;
+      margin-top: 3px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      font-size: 1rem;
+  }
+  .form-container button {
+      width: 100%;
+      max-width: 320px;
+      font-size: 1rem;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 15px;
+      background: #28a745;
+      color: white;
+  }
+  .form-container button:hover {
+      background: #218838;
+  }
 </style>
 </head>
-<body>
+<body class="fondo-dientes">
 
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
     <h1>Turnos Reservados</h1>
@@ -89,27 +145,32 @@
 </table>
 
 <hr>
-<h2 style="text-align:center; margin-top:30px;">➕ Asignar Turno Manual</h2>
 
-<div style="max-width:400px; margin:0 auto; background:#f9f9f9; padding:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
-    <form action="{{ url_for('asignar_turno') }}" method="post" style="display:flex; flex-direction:column; gap:10px;">
+<!-- ✅ CONTENEDOR ESTILIZADO -->
+<div class="form-container">
+    <h2>➕ Asignar Turno Manual</h2>
+    <form id="form-asignar" action="{{ url_for('asignar_turno') }}" method="post" style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+        <label>DNI</label>
         <input type="text" name="dni" placeholder="DNI" required>
+        <label>Nombre y Apellido</label>
         <input type="text" name="nombre" placeholder="Nombre y Apellido" required>
+        <label>Teléfono</label>
         <input type="tel" name="telefono" placeholder="Teléfono" required>
+        <label>Correo electrónico</label>
         <input type="email" name="email" placeholder="Correo electrónico" required>
-        <label for="fecha_admin">Seleccione Fecha:</label>
+        <label>Seleccione Fecha:</label>
         <input type="text" name="fecha" id="fecha_admin" required>
-        <label for="hora_admin">Seleccione Hora:</label>
+        <label>Seleccione Hora:</label>
         <select name="hora" id="hora_admin" required></select>
-        <button type="submit" style="background:#28a745; color:white; padding:10px; font-size:16px; border:none; border-radius:5px; cursor:pointer;">✅ Asignar Turno</button>
+        <button type="submit">✅ Asignar Turno</button>
     </form>
 </div>
 
-<!-- ✅ Flatpickr -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script>
+// ✅ Flatpickr y carga de horarios
 document.addEventListener('DOMContentLoaded', function() {
     fetch('/dias_disponibles')
     .then(res => res.json())
@@ -143,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// ✅ Función original para recargar tabla completa (cada 5s)
+// ✅ Refrescar tabla
 function cargarTurnosAdmin() {
     const fechaFiltro = "{{ fecha_filtro if fecha_filtro else '' }}";
     const url = (fechaFiltro && fechaFiltro !== "all") ? `/api/turnos_dia?fecha=${fechaFiltro}` : "/api/turnos_dia";
@@ -157,11 +218,10 @@ function cargarTurnosAdmin() {
         turnos.forEach(t => {
             const tr = document.createElement("tr");
             tr.style.background = t.estado === "atendido" ? "#C6F6C6" : (t.estado === "en_sala" ? "#FFD580" : "#E8F6F3");
-
             tr.innerHTML = `
                 <td>${t.dni}</td>
                 <td>${t.nombre}</td>
-                <td><a href="https://wa.me/${t.telefono}?text=${encodeURIComponent('Recordatorio de Turno\nTurno asignado en Zapiola 1180 entre General Alvarez y Luis María Campos, Bernal Oeste.\n\nHola! Te recordamos que tenés un turno el día ' + t.fecha + ' a las ' + t.hora + 'hs. ¿Confirmas asistencia?\n\nInformación importante:\n- Tenemos una tolerancia de espera de 10 minutos.\n- Trabajamos con efectivo, transferencia y tarjeta de débito.\n- Abonando en efectivo tiene un descuento.\n\nGracias, KL Dental.')}" target="_blank" style="color:green; font-weight:bold; text-decoration:none;">${t.telefono}</a></td>
+                <td><a href="https://wa.me/${t.telefono}?text=${encodeURIComponent('Recordatorio de Turno\\nTurno asignado en Zapiola 1180...')}" target="_blank" style="color:green; font-weight:bold; text-decoration:none;">${t.telefono}</a></td>
                 <td>${t.fecha}</td>
                 <td>${t.hora}</td>
                 <td>${t.estado === "atendido" ? "✅ Atendido" : (t.estado === "en_sala" ? "🟢 En Sala" : "🔵 Reservado")}</td>
@@ -184,38 +244,39 @@ function cargarTurnosAdmin() {
     });
 }
 
-// ✅ Interceptar formularios (MISMO QUE ORIGINAL, con cambio inmediato de fila)
+// ✅ Marcar En Sala (instantáneo sin recargar)
 document.addEventListener("submit", function(e) {
     if (e.target.matches(".form-en-sala")) {
         e.preventDefault();
         const form = e.target;
         const fila = form.closest("tr");
-
         if (fila) {
             fila.style.background = "#FFD580";
             const estado = fila.querySelector("td:nth-child(6)");
             if (estado) estado.textContent = "🟢 En Sala";
         }
-
         const formData = new FormData(form);
         fetch(form.action, { method: "POST", body: formData })
         .then(res => res.json())
-        .then(data => {
-            if (data.status === "ok") {
-                localStorage.setItem("turnoActualizado", Date.now());
-            }
-        });
+        .then(data => { if (data.status === "ok") localStorage.setItem("turnoActualizado", Date.now()); });
     }
 });
 
-// ✅ Listener para sincronizar con Profesional sin recargar todo
-window.addEventListener("storage", function(e) {
-    if (e.key === "turnoActualizado") {
-        // No recargamos toda la tabla, dejamos que el intervalo la actualice
-    }
+// ✅ Asignar Turno Manual (sin recargar página)
+document.getElementById("form-asignar").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const form = this;
+    const formData = new FormData(form);
+    fetch(form.action, { method: "POST", body: formData })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "ok") {
+            cargarTurnosAdmin();
+            form.reset();
+        }
+    });
 });
 
-// ✅ Mantener actualización periódica
 setInterval(cargarTurnosAdmin, 5000);
 cargarTurnosAdmin();
 </script>
