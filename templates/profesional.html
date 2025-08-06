@@ -7,7 +7,7 @@
     <style>
         body.fondo-dientes {
             background: url('/static/fondo_dientes4.jpg') repeat center center;
-            background-size: auto; /* mantiene tamaño original */
+            background-size: auto;
             font-family: Arial, sans-serif;
             color: #333;
             margin: 0;
@@ -15,23 +15,69 @@
             text-align: center;
             position: relative;
         }
+
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
         th { background: #007BFF; color: white; }
         tr.en-sala { background: #FFD580; }
         tr.reservado { background: #E8F6F3; }
         tr.atendido { background: #C6F6C6; }
+
         button { padding: 5px 10px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 5px; }
         button:hover { background: #218838; }
-        .logout-btn { position: absolute; top: 20px; right: 20px; background: #dc3545; color: white; padding: 8px 15px; border: none; border-radius: 5px; text-decoration: none; font-weight: bold; }
+
+        /* 🔹 Botón cerrar sesión */
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            z-index: 10;
+        }
         .logout-btn:hover { background: #b52b37; }
+
+        /* 🔹 Contenedor encabezado */
+        .header-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+            position: relative;
+            padding: 10px 20px;
+        }
+
+        .header-container h1 {
+            margin: 0;
+            flex: 1;
+        }
+
+        /* 🔹 Ajuste en pantallas chicas */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .logout-btn {
+                position: static;
+                display: inline-block;
+                width: auto;
+            }
+        }
     </style>
 </head>
 <body class="fondo-dientes">
 
-<a href="{{ url_for('logout_profesional') }}" class="logout-btn">🚪 Cerrar Sesión</a>
-
-<h1>Turnos del Día <span id="fecha-mostrar">{{ fecha }}</span></h1>
+<!-- 🔹 ENCABEZADO CON BOTÓN FIJO EN ESCRITORIO -->
+<div class="header-container">
+    <h1>Turnos del Día <span id="fecha-mostrar">{{ fecha }}</span></h1>
+    <a href="{{ url_for('logout_profesional') }}" class="logout-btn">🚪 Cerrar Sesión</a>
+</div>
 
 <input type="date" id="selector-fecha" value="{{ fecha }}">
 <button onclick="cargarTurnos()">🔄 Ver Turnos</button>

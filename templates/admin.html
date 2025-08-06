@@ -13,6 +13,7 @@
       margin: 0;
       padding: 0;
   }
+
   @media (min-width: 992px) {
     body { font-size: 1rem !important; }
     h1 { font-size: 2rem !important; }
@@ -20,7 +21,7 @@
     table { font-size: 0.95rem !important; border-collapse: collapse; }
     th, td { padding: 3px 5px !important; border: 1px solid #ddd; }
     button { font-size: 1rem !important; padding: 4px 7px !important; }
-    input, select, label { font-size: 0.75rem !important; }
+    input, select, label { font-size: 0.9rem !important; }
   }
 
   .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
@@ -40,14 +41,14 @@
       align-items: center;
       justify-content: center;
       padding: 0 20px;
+      flex-shrink: 0;
   }
   .btn-filtrar { background: #28a745; color: white; width: 120px; }
   .btn-asignar { background: #007BFF; color: white; width: 200px; font-size: 1.1rem; }
   .btn-asignar:hover { background: #0056b3; }
 
-  #fecha { height: 45px; font-size: 16px; padding: 5px; }
+  #fecha { height: 45px; font-size: 16px; padding: 5px; min-width: 180px; max-width: 220px; flex-shrink: 0; }
 
-  /* ✅ Estilo profesional encabezado tabla */
   #tabla-admin thead th {
       background: #007BFF;
       color: white;
@@ -55,37 +56,86 @@
       font-weight: bold;
       text-transform: uppercase;
   }
+
+  .filtro-container {
+      width: 100%;
+      padding: 0 20px;
+      margin-bottom: 20px;
+  }
+  .filtro-container form {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: nowrap;
+  }
+  .filtro-container label {
+      font-weight: bold;
+      white-space: nowrap;
+      flex-shrink: 0;
+  }
+  .filtro-container .link-ver-todos {
+      padding: 0 12px;
+      text-decoration: none;
+      color: #007BFF;
+      font-weight: bold;
+      line-height: 45px;
+      white-space: nowrap;
+      flex-shrink: 0;
+  }
+
+  /* ✅ BOTÓN VOLVER RESPONSIVE */
+  .header-container { display:flex; justify-content:center; align-items:center; margin-bottom:25px; position:relative; flex-wrap:wrap; }
+  .btn-volver-container { position:absolute; right:20px; top:50%; transform:translateY(-50%); }
+  .btn-volver {
+      width:150px; padding:10px; font-size:18px; border-radius:5px;
+      background:#28a745; color:white; border:none; cursor:pointer;
+  }
+  .btn-volver:hover { background:#1e7e34; }
+
+  @media (max-width: 768px) {
+      .header-container { flex-direction:column; align-items:center; }
+      .btn-volver-container { position:static; transform:none; width:100%; text-align:center; margin-top:10px; }
+      .btn-volver { width:90%; max-width:250px; }
+      .filtro-container form { flex-wrap:wrap; justify-content:center; }
+      .btn-estilo { width:100%; max-width:280px; margin:5px auto; }
+      #fecha { width:100%; max-width:250px; }
+      .link-ver-todos { width:100%; text-align:center; }
+  }
 </style>
 </head>
 <body class="fondo-dientes">
 
-<div style="display:flex; justify-content:center; align-items:center; margin-bottom:25px;">
-    <h1>Turnos Reservados</h1>
-    <form action="{{ url_for('panel_admin') }}" method="get" style="position:absolute; right:20px;">
-        <button type="submit" style="width:150px; padding:10px; font-size:18px; border-radius:5px; background:#28a745; color:white; border:none;">Volver</button>
+<!-- ✅ ENCABEZADO -->
+<div class="header-container">
+    <h1 style="margin:0;">Turnos Reservados</h1>
+    <form action="{{ url_for('panel_admin') }}" method="get" class="btn-volver-container">
+        <button type="submit" class="btn-volver">Volver</button>
     </form>
 </div>
 
-<div style="width:100%; padding-left:20px; margin-bottom:20px;">
-    <form method="get" action="/ver_turnos" style="display:flex; align-items:center; gap:15px;">
-        <label for="fecha" style="margin:0; font-weight:bold; white-space:nowrap;">Filtrar por fecha:</label>
+<!-- ✅ FILTRO -->
+<div class="filtro-container">
+    <form method="get" action="/ver_turnos">
+        <label for="fecha">Filtrar por fecha:</label>
         <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro if (fecha_filtro and fecha_filtro != 'all') else '' }}">
         <button type="submit" class="btn-estilo btn-filtrar">Filtrar</button>
         {% if fecha_filtro and fecha_filtro != 'all' %}
-        <a href="{{ url_for('ver_turnos', fecha='all') }}" style="line-height:45px;">Ver todos</a>
+        <a href="{{ url_for('ver_turnos', fecha='all') }}" class="link-ver-todos">Ver todos</a>
         {% endif %}
     </form>
 </div>
 
+<!-- ✅ BOTÓN ASIGNAR -->
 <div style="width:100%; display:flex; justify-content:center; margin-bottom:25px;">
     <button id="btn-open-modal" class="btn-estilo btn-asignar">➕ Asignar Turno Manual</button>
 </div>
 
+<!-- ✅ TABLA -->
 <table id="tabla-admin" style="width:100%; text-align:center;">
     <thead>
-        <tr>
-            <th>DNI</th><th>Nombre</th><th>Teléfono</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acción</th>
-        </tr>
+        <tr><th>DNI</th><th>Nombre</th><th>Teléfono</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acción</th></tr>
     </thead>
     <tbody id="tbody-admin">
         {% for t in turnos %}
@@ -128,6 +178,7 @@
     </tbody>
 </table>
 
+<!-- ✅ MODAL -->
 <div id="modal-turno" class="modal">
     <div class="modal-content">
         <button id="btn-close-modal" class="close-btn">⬅️ Volver</button>
@@ -144,9 +195,9 @@
     </div>
 </div>
 
+<!-- ✅ SCRIPTS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
 <script>
 const modal = document.getElementById("modal-turno");
 document.getElementById("btn-open-modal").addEventListener("click", () => modal.style.display = "flex");
@@ -196,14 +247,7 @@ function cargarTurnosAdmin() {
         tbody.innerHTML = "";
         turnos.forEach(t => {
             const mensaje = encodeURIComponent(
-                `Recordatorio de Turno\n` +
-                `Turno asignado en Zapiola 1180 entre General Alvarez y Luis María Campos, Bernal Oeste.\n\n` +
-                `Hola! Te recordamos que tenés un turno el día ${t.fecha} a las ${t.hora}hs. ¿Confirmas asistencia?\n\n` +
-                `Información importante:\n` +
-                `- Tenemos una tolerancia de espera de 10 minutos.\n` +
-                `- Trabajamos con efectivo, transferencia y tarjeta de débito.\n` +
-                `- Abonando en efectivo tiene un descuento.\n\n` +
-                `Gracias, KL Dental.`
+                `Recordatorio de Turno\nTurno asignado en Zapiola 1180 entre General Alvarez y Luis María Campos, Bernal Oeste.\n\nHola! Te recordamos que tenés un turno el día ${t.fecha} a las ${t.hora}hs. ¿Confirmas asistencia?\n\nInformación importante:\n- Tenemos una tolerancia de espera de 10 minutos.\n- Trabajamos con efectivo, transferencia y tarjeta de débito.\n- Abonando en efectivo tiene un descuento.\n\nGracias, KL Dental.`
             );
             const tel = t.telefono.replace(/[^0-9]/g,'');
             const tr = document.createElement("tr");
@@ -233,7 +277,6 @@ function cargarTurnosAdmin() {
         });
     });
 }
-
 setInterval(cargarTurnosAdmin, 5000);
 cargarTurnosAdmin();
 </script>
