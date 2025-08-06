@@ -1,19 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turnos Reservados</title>
     <link rel="stylesheet" href="/static/style.css">
-    <style>
-      @media (min-width: 992px) {
-        body { font-size: 0.85rem !important; }
-        h1 { font-size: 2rem !important; }
-        h2 { font-size: 1.2rem !important; }
-        table { font-size: 0.8rem !important; }
-        th, td { padding: 4px 6px !important; }
-        button { font-size: 0.8rem !important; padding: 5px 8px !important; }
-        input, select, label { font-size: 0.8rem !important; }
-      }
-    </style>
+<style>
+  /* 🔹 SOLO en pantallas grandes (PC) */
+  @media (min-width: 992px) {
+    body { font-size: 1rem !important; }     /* texto general */
+    h1 { font-size: 2rem !important; }       /* título principal */
+    h2 { font-size: 1.5rem !important; }
+    table { font-size: 0.95rem !important; }   /* texto de tabla */
+    th, td { padding: 3px 5px !important; }    /* menos espacio en celdas */
+    button { font-size: 1rem !important; padding: 4px 7px !important; }
+    input, select, label { font-size: 0.75rem !important; }
+  }
+
+</style>
 </head>
 <body>
 
@@ -41,46 +45,42 @@
     </thead>
     <tbody id="tbody-admin">
         {% for t in turnos %}
-        {% set telefono_wp = t.telefono|replace('+','') %}
-        {% if telefono_wp.startswith('0') %}
-            {% set telefono_wp = '54' + telefono_wp[1:] %}
-        {% elif not telefono_wp.startswith('54') %}
-            {% set telefono_wp = '54' + telefono_wp %}
-        {% endif %}
         <tr style="background:{% if t.estado == 'atendido' %}#C6F6C6{% elif t.estado == 'en_sala' %}#FFD580{% else %}#E8F6F3{% endif %};">
             <td>{{ t.dni }}</td>
             <td>{{ t.nombre }}</td>
             <td>
-                <a href="https://wa.me/{{ telefono_wp }}?text={{ (
-'Recordatorio\n' ~
-'Turno asignado en Zapiola 1180 entre General Alvarez y Luis María Campos.\n\n' ~
+              <a href="https://wa.me/{{ t.telefono }}?text={{ (
+'Recordatorio de Turno\n' ~
+'Turno asignado en Zapiola 1180 entre General Alvarez y Luis María Campos, Bernal Oeste.\n\n' ~
 'Hola! Te recordamos que tenés un turno el día ' ~ t.fecha ~ ' a las ' ~ t.hora ~ 'hs. ¿Confirmas asistencia?\n\n' ~
-'Información importante\n' ~
+'Información importante:\n' ~
 '- Tenemos una tolerancia de espera de 10 minutos.\n' ~
 '- Trabajamos con efectivo, transferencia y tarjeta de débito.\n' ~
 '- Abonando en efectivo tiene un descuento.\n\n' ~
 'Gracias, KL Dental.'
-)|urlencode }}"
-                   target="_blank"
-                   style="color:green; font-weight:bold; text-decoration:none;">
-                   {{ t.telefono }}
-                </a>
+)|urlencode }}" target="_blank" style="color:green; font-weight:bold; text-decoration:none;">
+              {{ t.telefono }}
+              </a>
             </td>
             <td>{{ t.fecha }}</td>
             <td>{{ t.hora }}</td>
-            <td>{% if t.estado == 'atendido' %}Atendido{% elif t.estado == 'en_sala' %}En Sala{% else %}Reservado{% endif %}</td>
+            <td>
+                {% if t.estado == 'atendido' %}✅ Atendido
+                {% elif t.estado == 'en_sala' %}🟢 En Sala
+                {% else %}🔵 Reservado{% endif %}
+            </td>
             <td>
                 <form class="form-en-sala" method="post" action="/marcar_en_sala" style="display:inline;">
                     <input type="hidden" name="dni" value="{{ t.dni }}">
                     <input type="hidden" name="fecha" value="{{ t.fecha }}">
                     <input type="hidden" name="hora" value="{{ t.hora }}">
-                    <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px; cursor:pointer;">Marcar En Sala</button>
+                    <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px; cursor:pointer;">🟢 Marcar En Sala</button>
                 </form>
                 <form method="post" action="/borrar_turno" style="display:inline;">
                     <input type="hidden" name="dni" value="{{ t.dni }}">
                     <input type="hidden" name="fecha" value="{{ t.fecha }}">
                     <input type="hidden" name="hora" value="{{ t.hora }}">
-                    <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px; cursor:pointer;">Borrar</button>
+                    <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px; cursor:pointer;">❌ Borrar</button>
                 </form>
             </td>
         </tr>
@@ -89,7 +89,7 @@
 </table>
 
 <hr>
-<h2 style="text-align:center; margin-top:30px;">Asignar Turno Manual</h2>
+<h2 style="text-align:center; margin-top:30px;">➕ Asignar Turno Manual</h2>
 
 <div style="max-width:400px; margin:0 auto; background:#f9f9f9; padding:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
     <form action="{{ url_for('asignar_turno') }}" method="post" style="display:flex; flex-direction:column; gap:10px;">
@@ -101,10 +101,11 @@
         <input type="text" name="fecha" id="fecha_admin" required>
         <label for="hora_admin">Seleccione Hora:</label>
         <select name="hora" id="hora_admin" required></select>
-        <button type="submit" style="background:#28a745; color:white; padding:10px; font-size:16px; border:none; border-radius:5px; cursor:pointer;">Asignar Turno</button>
+        <button type="submit" style="background:#28a745; color:white; padding:10px; font-size:16px; border:none; border-radius:5px; cursor:pointer;">✅ Asignar Turno</button>
     </form>
 </div>
 
+<!-- ✅ Flatpickr -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
@@ -118,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
             disable: [date => !fechas.includes(date.toISOString().split('T')[0])],
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 const fecha = dayElem.dateObj.toISOString().split('T')[0];
-                if (fechas.includes(fecha)) { dayElem.style.backgroundColor = "#90EE90"; }
+                if (fechas.includes(fecha)) dayElem.style.backgroundColor = "#90EE90";
                 else { dayElem.style.backgroundColor = "#FFB6B6"; dayElem.style.opacity = "0.5"; }
             }
         });
@@ -141,6 +142,82 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// ✅ Función original para recargar tabla completa (cada 5s)
+function cargarTurnosAdmin() {
+    const fechaFiltro = "{{ fecha_filtro if fecha_filtro else '' }}";
+    const url = (fechaFiltro && fechaFiltro !== "all") ? `/api/turnos_dia?fecha=${fechaFiltro}` : "/api/turnos_dia";
+
+    fetch(url)
+    .then(res => res.json())
+    .then(turnos => {
+        const tbody = document.getElementById("tbody-admin");
+        tbody.innerHTML = "";
+
+        turnos.forEach(t => {
+            const tr = document.createElement("tr");
+            tr.style.background = t.estado === "atendido" ? "#C6F6C6" : (t.estado === "en_sala" ? "#FFD580" : "#E8F6F3");
+
+            tr.innerHTML = `
+                <td>${t.dni}</td>
+                <td>${t.nombre}</td>
+                <td><a href="https://wa.me/${t.telefono}?text=${encodeURIComponent('Recordatorio de Turno\nTurno asignado en Zapiola 1180 entre General Alvarez y Luis María Campos, Bernal Oeste.\n\nHola! Te recordamos que tenés un turno el día ' + t.fecha + ' a las ' + t.hora + 'hs. ¿Confirmas asistencia?\n\nInformación importante:\n- Tenemos una tolerancia de espera de 10 minutos.\n- Trabajamos con efectivo, transferencia y tarjeta de débito.\n- Abonando en efectivo tiene un descuento.\n\nGracias, KL Dental.')}" target="_blank" style="color:green; font-weight:bold; text-decoration:none;">${t.telefono}</a></td>
+                <td>${t.fecha}</td>
+                <td>${t.hora}</td>
+                <td>${t.estado === "atendido" ? "✅ Atendido" : (t.estado === "en_sala" ? "🟢 En Sala" : "🔵 Reservado")}</td>
+                <td>
+                    <form class="form-en-sala" method="post" action="/marcar_en_sala" style="display:inline;">
+                        <input type="hidden" name="dni" value="${t.dni}">
+                        <input type="hidden" name="fecha" value="${t.fecha}">
+                        <input type="hidden" name="hora" value="${t.hora}">
+                        <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px; cursor:pointer;">🟢 Marcar En Sala</button>
+                    </form>
+                    <form method="post" action="/borrar_turno" style="display:inline;">
+                        <input type="hidden" name="dni" value="${t.dni}">
+                        <input type="hidden" name="fecha" value="${t.fecha}">
+                        <input type="hidden" name="hora" value="${t.hora}">
+                        <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px; cursor:pointer;">❌ Borrar</button>
+                    </form>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+    });
+}
+
+// ✅ Interceptar formularios (MISMO QUE ORIGINAL, con cambio inmediato de fila)
+document.addEventListener("submit", function(e) {
+    if (e.target.matches(".form-en-sala")) {
+        e.preventDefault();
+        const form = e.target;
+        const fila = form.closest("tr");
+
+        if (fila) {
+            fila.style.background = "#FFD580";
+            const estado = fila.querySelector("td:nth-child(6)");
+            if (estado) estado.textContent = "🟢 En Sala";
+        }
+
+        const formData = new FormData(form);
+        fetch(form.action, { method: "POST", body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "ok") {
+                localStorage.setItem("turnoActualizado", Date.now());
+            }
+        });
+    }
+});
+
+// ✅ Listener para sincronizar con Profesional sin recargar todo
+window.addEventListener("storage", function(e) {
+    if (e.key === "turnoActualizado") {
+        // No recargamos toda la tabla, dejamos que el intervalo la actualice
+    }
+});
+
+// ✅ Mantener actualización periódica
+setInterval(cargarTurnosAdmin, 5000);
+cargarTurnosAdmin();
 </script>
 </body>
 </html>

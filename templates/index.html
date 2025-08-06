@@ -141,26 +141,31 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        fetch('/dias_disponibles')
-        .then(res => res.json())
-        .then(fechas => {
-            flatpickr("#fecha", {
-                dateFormat: "Y-m-d",
-                onDayCreate: function(dObj, dStr, fp, dayElem) {
-                    const fecha = dayElem.dateObj.toISOString().split('T')[0];
-                    if (fechas.includes(fecha)) {
-                        dayElem.style.backgroundColor = "#90EE90";
-                    } else {
-                        dayElem.style.backgroundColor = "#FFB6B6";
-                        dayElem.style.opacity = "0.5";
-                    }
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/dias_disponibles')
+    .then(res => res.json())
+    .then(fechas => {
+        flatpickr("#fecha", {
+            dateFormat: "Y-m-d",
+            disableMobile: true, // ✅ fuerza a usar flatpickr también en celulares
+            disable: [
+                function(date) {
+                    return !fechas.includes(date.toISOString().split('T')[0]);
                 }
-            });
+            ],
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const fecha = dayElem.dateObj.toISOString().split('T')[0];
+                if (fechas.includes(fecha)) {
+                    dayElem.style.backgroundColor = "#90EE90"; // verde disponible
+                } else {
+                    dayElem.style.backgroundColor = "#FFB6B6"; // rojo no disponible
+                    dayElem.style.opacity = "0.5";
+                }
+            }
         });
     });
-    </script>
-
+});
+</script>
 </body>
 </html>

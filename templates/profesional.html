@@ -14,99 +14,89 @@
         tr.atendido { background: #C6F6C6; }
         button { padding: 5px 10px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 5px; }
         button:hover { background: #218838; }
-
-        /* ✅ Estilo para el botón de logout */
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #dc3545;
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .logout-btn:hover {
-            background: #b52b37;
-        }
+        .logout-btn { position: absolute; top: 20px; right: 20px; background: #dc3545; color: white; padding: 8px 15px; border: none; border-radius: 5px; text-decoration: none; font-weight: bold; }
+        .logout-btn:hover { background: #b52b37; }
     </style>
 </head>
 <body>
 
-<!-- ✅ Botón de cerrar sesión -->
 <a href="{{ url_for('logout_profesional') }}" class="logout-btn">🚪 Cerrar Sesión</a>
 
 <h1>Turnos del Día <span id="fecha-mostrar">{{ fecha }}</span></h1>
 
-<!-- ✅ Selector de fecha -->
 <input type="date" id="selector-fecha" value="{{ fecha }}">
 <button onclick="cargarTurnos()">🔄 Ver Turnos</button>
 
 <table id="tabla-turnos">
     <thead>
-        <tr>
-            <th>Hora</th><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Estado</th><th>Acción</th>
-        </tr>
+        <tr><th>Hora</th><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Estado</th><th>Acción</th></tr>
     </thead>
     <tbody></tbody>
 </table>
 
 <script>
-// ✅ Función para obtener los turnos de la fecha seleccionada
+// ✅ Carga de turnos
 function cargarTurnos() {
     const fecha = document.getElementById("selector-fecha").value || "{{ fecha }}";
     document.getElementById("fecha-mostrar").innerText = fecha;
-    
+
     fetch(`/api/turnos_dia?fecha=${fecha}`)
     .then(res => res.json())
     .then(turnos => {
         const tbody = document.querySelector("#tabla-turnos tbody");
         tbody.innerHTML = "";
-
         turnos.forEach(t => {
             const tr = document.createElement("tr");
-            tr.className = (t.estado === "en_sala") ? "en-sala" :
-                           (t.estado === "atendido") ? "atendido" : "reservado";
-            
+            tr.className = t.estado === "en_sala" ? "en-sala" : (t.estado === "atendido" ? "atendido" : "reservado");
             tr.innerHTML = `
                 <td>${t.hora}</td>
                 <td>${t.nombre}</td>
                 <td>${t.dni}</td>
                 <td>${t.telefono}</td>
-                <td>${t.estado === "en_sala" ? "🟢 En Sala" :
-                       t.estado === "atendido" ? "✅ Atendido" : "🔵 Reservado"}</td>
+                <td>${t.estado === "en_sala" ? "🟢 En Sala" : (t.estado === "atendido" ? "✅ Atendido" : "🔵 Reservado")}</td>
                 <td>
-                    ${t.estado !== "atendido" ? 
-                      `<button onclick="marcarAtendido('${t.dni}','${t.fecha}','${t.hora}')">✅ Marcar Atendido</button>` : ""}
-                </td>
-            `;
+                    ${t.estado === "reservado" ? 
+                        `<button onclick="marcarEnSala('${t.dni}','${t.fecha}','${t.hora}', this)">🟢 Marcar En Sala</button>` : 
+                        (t.estado !== "atendido" ? `<button onclick="marcarAtendido('${t.dni}','${t.fecha}','${t.hora}', this)">✅ Marcar Atendido</button>` : "")
+                    }
+                </td>`;
             tbody.appendChild(tr);
         });
     });
 }
 
-// ✅ Función para marcar un turno como atendido
-function marcarAtendido(dni, fecha, hora) {
+// ✅ Marcar en sala instantáneo
+function marcarEnSala(dni, fecha, hora, btn) {
+    const fila = btn.closest("tr");
+    fila.className = "en-sala";
+    fila.children[4].textContent = "🟢 En Sala";
+    fila.children[5].innerHTML = `<button onclick="marcarAtendido('${dni}','${fecha}','${hora}', this)">✅ Marcar Atendido</button>`;
+    localStorage.setItem("estadoTurnoActualizado", Date.now());
+
+    fetch('/marcar_en_sala', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `dni=${dni}&fecha=${fecha}&hora=${hora}`
+    }).catch(() => cargarTurnos());
+}
+
+// ✅ Marcar atendido instantáneo
+function marcarAtendido(dni, fecha, hora, btn) {
+    const fila = btn.closest("tr");
+    fila.className = "atendido";
+    fila.children[4].textContent = "✅ Atendido";
+    fila.children[5].innerHTML = "";
+    localStorage.setItem("estadoTurnoActualizado", Date.now());
+
     fetch('/marcar_atendido', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `dni=${dni}&fecha=${fecha}&hora=${hora}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            localStorage.setItem("turnosActualizados", Date.now());
-            setTimeout(() => cargarTurnos(), 500);
-        }
-    });
+    }).catch(() => cargarTurnos());
 }
 
-// ✅ Al cargar la página, muestra los turnos del día actual automáticamente
+// ✅ Inicialización
 document.addEventListener("DOMContentLoaded", cargarTurnos);
-
-// ✅ Mantiene la actualización automática cada 5 seg
 setInterval(cargarTurnos, 5000);
 </script>
 </body>

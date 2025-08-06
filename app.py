@@ -326,10 +326,16 @@ def asignar_turno():
     return redirect(url_for('ver_turnos'))
 
 @app.route("/marcar_en_sala",methods=["POST"])
-def marcar_en_sala(): actualizar_estado_turno(request.form["dni"],request.form["fecha"],request.form["hora"],'en_sala'); return jsonify({"status":"ok"})
+def marcar_en_sala(): 
+    actualizar_estado_turno(request.form["dni"], request.form["fecha"], request.form["hora"], 'en_sala')
+    return redirect(url_for('ver_turnos'))
+
 
 @app.route('/marcar_atendido',methods=['POST'])
-def marcar_atendido(): actualizar_estado_turno(request.form['dni'],request.form['fecha'],request.form['hora'],'atendido'); return jsonify({"success":True})
+def marcar_atendido():
+    actualizar_estado_turno(request.form['dni'], request.form['fecha'], request.form['hora'], 'atendido')
+    return redirect(url_for('ver_turnos'))
+
 
 @app.route('/api/turnos_dia')
 def api_turnos_dia():
