@@ -2,46 +2,118 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cancelar Turno</title>
     <link rel="stylesheet" href="/static/style.css">
+<style>
+  body.fondo-dientes {
+      background: url('/static/fondo_dientes4.jpg') repeat center center;
+      background-size: auto;
+      font-family: Arial, sans-serif;
+      color: #333;
+      margin: 0;
+      padding: 0;
+  }
+
+  .form-container {
+      background: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: 20px auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      text-align: center;
+  }
+
+  h1, h2 {
+      text-align: center;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
+      margin: 10px 0;
+  }
+
+  input {
+      width: 100%;
+      max-width: 300px;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+  }
+
+  button {
+      width: 100%;
+      max-width: 320px;
+      font-size: 1rem;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+  }
+  button[type="submit"] { background: #28a745; color: white; }
+  button[type="submit"]:hover { background: #218838; }
+  .btn-secundario { background: #007bff; color: white; }
+  .btn-secundario:hover { background: #0056b3; }
+
+  table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 0.9rem;
+  }
+  th, td {
+      border: 1px solid #ccc;
+      padding: 5px;
+      text-align: center;
+  }
+  tr:nth-child(even) { background: #f9f9f9; }
+
+  @media (min-width: 992px) {
+      h1 { font-size: 2.5rem; }
+      button { font-size: 1.1rem; }
+  }
+</style>
 </head>
 <body class="fondo-dientes">
-    <h1>Ver/Cancelar Turno</h1>
-    <form method="post" action="/cancelar">
-        <input type="text" name="dni" placeholder="Ingresá tu DNI" required value="{{ dni }}">
-        <button type="submit">Buscar Turnos</button>
-    </form>
 
-    {% if turnos %}
-    <h2>Turnos Encontrados:</h2>
-    <table>
-        <tr><th>Fecha</th><th>Hora</th><th>Nombre</th><th>Teléfono</th><th>Acción</th></tr>
-        {% for t in turnos %}
-        <tr>
-            <td>{{ t.fecha }}</td>
-            <td>{{ t.hora }}</td>
-            <td>{{ t.nombre }}</td>
-            <td>{{ t.telefono }}</td>
-            <td>
-                <form method="post" action="/cancelar_turno">
-                    <input type="hidden" name="dni" value="{{ t.dni }}">
-                    <input type="hidden" name="fecha" value="{{ t.fecha }}">
-                    <input type="hidden" name="hora" value="{{ t.hora }}">
-                    <button type="submit">Cancelar</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-    {% elif dni %}
-    <p>No se encontraron turnos para el DNI ingresado.</p>
-    {% endif %}
+  <div class="form-container">
+      <h1>Ver / Cancelar Turno</h1>
 
-    <div style="text-align:right; margin-top:10px;">
-        <form action="{{ url_for('index') }}" method="get">
-            <button type="submit">Volver</button>
-        </form>
-    </div>
+      <form method="post" action="/cancelar">
+          <input type="text" name="dni" placeholder="Ingresá tu DNI" required value="{{ dni }}">
+          <button type="submit">Buscar Turnos</button>
+      </form>
+
+      {% if turnos %}
+      <h2>Turnos Encontrados:</h2>
+      <table>
+          <tr><th>Fecha</th><th>Hora</th><th>Nombre</th><th>Teléfono</th><th>Acción</th></tr>
+          {% for t in turnos %}
+          <tr>
+              <td>{{ t.fecha }}</td>
+              <td>{{ t.hora }}</td>
+              <td>{{ t.nombre }}</td>
+              <td>{{ t.telefono }}</td>
+              <td>
+                  <form method="post" action="/cancelar_turno">
+                      <input type="hidden" name="dni" value="{{ t.dni }}">
+                      <input type="hidden" name="fecha" value="{{ t.fecha }}">
+                      <input type="hidden" name="hora" value="{{ t.hora }}">
+                      <button type="submit">Cancelar</button>
+                  </form>
+              </td>
+          </tr>
+          {% endfor %}
+      </table>
+      {% elif dni %}
+      <p>No se encontraron turnos para el DNI ingresado.</p>
+      {% endif %}
+
+      <form action="{{ url_for('index') }}" method="get">
+          <button type="submit" class="btn-secundario">Volver</button>
+      </form>
+  </div>
+
 </body>
 </html>
