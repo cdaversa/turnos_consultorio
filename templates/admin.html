@@ -5,95 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turnos Reservados</title>
     <link rel="stylesheet" href="/static/style.css">
-
 <style>
   body.fondo-dientes {
       background: url('/static/fondo_dientes4.jpg') repeat center center;
-      background-size: auto; /* mantiene tamaño original */
+      background-size: auto;
       font-family: Arial, sans-serif;
-      color: #333;
       margin: 0;
       padding: 0;
   }
-
   @media (min-width: 992px) {
     body { font-size: 1rem !important; }
     h1 { font-size: 2rem !important; }
     h2 { font-size: 1.5rem !important; }
-    table { font-size: 0.95rem !important; }
-    th, td { padding: 3px 5px !important; }
+    table { font-size: 0.95rem !important; border-collapse: collapse; }
+    th, td { padding: 3px 5px !important; border: 1px solid #ddd; }
     button { font-size: 1rem !important; padding: 4px 7px !important; }
     input, select, label { font-size: 0.75rem !important; }
   }
 
-  /* ✅ Estilo contenedor Asignar Turno Manual */
-  .form-container {
-      background: rgba(255, 255, 255, 0.8);
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 400px;
-      margin: 0 auto;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-      text-align: center;
-  }
-  .form-container h2 {
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin-bottom: 15px;
-  }
-  .form-container label {
-      font-weight: bold;
-      display: block;
-      margin-top: 10px;
-      text-align: left;
-  }
-  .form-container input,
-  .form-container select {
-      width: 100%;
-      max-width: 300px;
-      padding: 10px;
-      margin-top: 3px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      font-size: 1rem;
-  }
-  .form-container button {
-      width: 100%;
-      max-width: 320px;
-      font-size: 1rem;
-      padding: 10px 20px;
+  .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+  .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); text-align: center; }
+  .close-btn { background: #6c757d; color: white; border: none; padding: 7px 12px; cursor: pointer; border-radius: 5px; margin-bottom: 10px; }
+  .close-btn:hover { background: #5a6268; }
+  .modal-content input, .modal-content select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ccc; border-radius: 5px; }
+  .modal-content button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; margin-top: 10px; }
+
+  .btn-estilo {
+      height: 45px;
+      font-size: 16px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      margin-top: 15px;
-      background: #28a745;
-      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
   }
-  .form-container button:hover {
-      background: #218838;
+  .btn-filtrar { background: #28a745; color: white; width: 120px; }
+  .btn-asignar { background: #007BFF; color: white; width: 200px; font-size: 1.1rem; }
+  .btn-asignar:hover { background: #0056b3; }
+
+  #fecha { height: 45px; font-size: 16px; padding: 5px; }
+
+  /* ✅ Estilo profesional encabezado tabla */
+  #tabla-admin thead th {
+      background: #007BFF;
+      color: white;
+      padding: 10px;
+      font-weight: bold;
+      text-transform: uppercase;
   }
 </style>
 </head>
 <body class="fondo-dientes">
 
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+<div style="display:flex; justify-content:center; align-items:center; margin-bottom:25px;">
     <h1>Turnos Reservados</h1>
-    <form action="{{ url_for('panel_admin') }}" method="get">
-        <button type="submit" style="width:150px; padding:10px; font-size:18px; border-radius:5px;">Volver</button>
+    <form action="{{ url_for('panel_admin') }}" method="get" style="position:absolute; right:20px;">
+        <button type="submit" style="width:150px; padding:10px; font-size:18px; border-radius:5px; background:#28a745; color:white; border:none;">Volver</button>
     </form>
 </div>
 
-<form method="get" action="/ver_turnos">
-    <label for="fecha">Filtrar por fecha:</label>
-    <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro if (fecha_filtro and fecha_filtro != 'all') else '' }}">
-    <button type="submit">Filtrar</button>
-    {% if fecha_filtro and fecha_filtro != 'all' %}
-    <a href="{{ url_for('ver_turnos', fecha='all') }}">Ver todos</a>
-    {% endif %}
-</form>
+<div style="width:100%; padding-left:20px; margin-bottom:20px;">
+    <form method="get" action="/ver_turnos" style="display:flex; align-items:center; gap:15px;">
+        <label for="fecha" style="margin:0; font-weight:bold; white-space:nowrap;">Filtrar por fecha:</label>
+        <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro if (fecha_filtro and fecha_filtro != 'all') else '' }}">
+        <button type="submit" class="btn-estilo btn-filtrar">Filtrar</button>
+        {% if fecha_filtro and fecha_filtro != 'all' %}
+        <a href="{{ url_for('ver_turnos', fecha='all') }}" style="line-height:45px;">Ver todos</a>
+        {% endif %}
+    </form>
+</div>
 
-<table border="1" style="width:100%; text-align:center;" id="tabla-admin">
+<div style="width:100%; display:flex; justify-content:center; margin-bottom:25px;">
+    <button id="btn-open-modal" class="btn-estilo btn-asignar">➕ Asignar Turno Manual</button>
+</div>
+
+<table id="tabla-admin" style="width:100%; text-align:center;">
     <thead>
         <tr>
             <th>DNI</th><th>Nombre</th><th>Teléfono</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acción</th>
@@ -105,38 +93,34 @@
             <td>{{ t.dni }}</td>
             <td>{{ t.nombre }}</td>
             <td>
-              <a href="https://wa.me/{{ t.telefono }}?text={{ (
-'Recordatorio de Turno\n' ~
-'Turno asignado en Zapiola 1180 entre General Alvarez y Luis María Campos, Bernal Oeste.\n\n' ~
-'Hola! Te recordamos que tenés un turno el día ' ~ t.fecha ~ ' a las ' ~ t.hora ~ 'hs. ¿Confirmas asistencia?\n\n' ~
-'Información importante:\n' ~
-'- Tenemos una tolerancia de espera de 10 minutos.\n' ~
-'- Trabajamos con efectivo, transferencia y tarjeta de débito.\n' ~
-'- Abonando en efectivo tiene un descuento.\n\n' ~
-'Gracias, KL Dental.'
-)|urlencode }}" target="_blank" style="color:green; font-weight:bold; text-decoration:none;">
-              {{ t.telefono }}
+              <a href="https://wa.me/549{{ t.telefono | replace('+','') | replace(' ','') | replace('-','') }}?text={{ (
+                'Recordatorio de Turno\n' ~
+                'Turno asignado en Zapiola 1180 entre General Alvarez y Luis María Campos, Bernal Oeste.\n\n' ~
+                'Hola! Te recordamos que tenés un turno el día ' ~ t.fecha ~ ' a las ' ~ t.hora ~ 'hs. ¿Confirmas asistencia?\n\n' ~
+                'Información importante:\n' ~
+                '- Tenemos una tolerancia de espera de 10 minutos.\n' ~
+                '- Trabajamos con efectivo, transferencia y tarjeta de débito.\n' ~
+                '- Abonando en efectivo tiene un descuento.\n\n' ~
+                'Gracias, KL Dental.'
+              ) | urlencode }}" target="_blank" style="color:green; font-weight:bold; text-decoration:none;">
+                 {{ t.telefono }}
               </a>
             </td>
             <td>{{ t.fecha }}</td>
             <td>{{ t.hora }}</td>
-            <td>
-                {% if t.estado == 'atendido' %}✅ Atendido
-                {% elif t.estado == 'en_sala' %}🟢 En Sala
-                {% else %}🔵 Reservado{% endif %}
-            </td>
+            <td>{% if t.estado == 'atendido' %}✅ Atendido{% elif t.estado == 'en_sala' %}🟢 En Sala{% else %}🔵 Reservado{% endif %}</td>
             <td>
                 <form class="form-en-sala" method="post" action="/marcar_en_sala" style="display:inline;">
                     <input type="hidden" name="dni" value="{{ t.dni }}">
                     <input type="hidden" name="fecha" value="{{ t.fecha }}">
                     <input type="hidden" name="hora" value="{{ t.hora }}">
-                    <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px; cursor:pointer;">🟢 Marcar En Sala</button>
+                    <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px;">🟢 Marcar En Sala</button>
                 </form>
-                <form method="post" action="/borrar_turno" style="display:inline;">
+                <form class="form-borrar" method="post" action="/borrar_turno" style="display:inline;">
                     <input type="hidden" name="dni" value="{{ t.dni }}">
                     <input type="hidden" name="fecha" value="{{ t.fecha }}">
                     <input type="hidden" name="hora" value="{{ t.hora }}">
-                    <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px; cursor:pointer;">❌ Borrar</button>
+                    <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px;">❌ Borrar</button>
                 </form>
             </td>
         </tr>
@@ -144,84 +128,90 @@
     </tbody>
 </table>
 
-<hr>
-
-<!-- ✅ CONTENEDOR ESTILIZADO -->
-<div class="form-container">
-    <h2>➕ Asignar Turno Manual</h2>
-    <form id="form-asignar" action="{{ url_for('asignar_turno') }}" method="post" style="display:flex; flex-direction:column; gap:10px; align-items:center;">
-        <label>DNI</label>
-        <input type="text" name="dni" placeholder="DNI" required>
-        <label>Nombre y Apellido</label>
-        <input type="text" name="nombre" placeholder="Nombre y Apellido" required>
-        <label>Teléfono</label>
-        <input type="tel" name="telefono" placeholder="Teléfono" required>
-        <label>Correo electrónico</label>
-        <input type="email" name="email" placeholder="Correo electrónico" required>
-        <label>Seleccione Fecha:</label>
-        <input type="text" name="fecha" id="fecha_admin" required>
-        <label>Seleccione Hora:</label>
-        <select name="hora" id="hora_admin" required></select>
-        <button type="submit">✅ Asignar Turno</button>
-    </form>
+<div id="modal-turno" class="modal">
+    <div class="modal-content">
+        <button id="btn-close-modal" class="close-btn">⬅️ Volver</button>
+        <h2>Asignar Turno Manual</h2>
+        <form id="form-asignar" action="{{ url_for('asignar_turno') }}" method="post">
+            <input type="text" name="dni" placeholder="DNI" required>
+            <input type="text" name="nombre" placeholder="Nombre y Apellido" required>
+            <input type="tel" name="telefono" placeholder="Teléfono" required>
+            <input type="email" name="email" placeholder="Correo electrónico" required>
+            <input type="text" name="fecha" id="fecha_admin" required>
+            <select name="hora" id="hora_admin" required></select>
+            <button type="submit">✅ Guardar Turno</button>
+        </form>
+    </div>
 </div>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script>
-// ✅ Flatpickr y carga de horarios
+const modal = document.getElementById("modal-turno");
+document.getElementById("btn-open-modal").addEventListener("click", () => modal.style.display = "flex");
+document.getElementById("btn-close-modal").addEventListener("click", () => modal.style.display = "none");
+window.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
+
 document.addEventListener('DOMContentLoaded', function() {
-    fetch('/dias_disponibles')
-    .then(res => res.json())
-    .then(fechas => {
+    fetch('/dias_disponibles').then(res => res.json()).then(fechas => {
         flatpickr("#fecha_admin", {
             dateFormat: "Y-m-d",
-            disable: [date => !fechas.includes(date.toISOString().split('T')[0])],
-            onDayCreate: function(dObj, dStr, fp, dayElem) {
-                const fecha = dayElem.dateObj.toISOString().split('T')[0];
-                if (fechas.includes(fecha)) dayElem.style.backgroundColor = "#90EE90";
-                else { dayElem.style.backgroundColor = "#FFB6B6"; dayElem.style.opacity = "0.5"; }
+            disable: [d => !fechas.includes(d.toISOString().split('T')[0])],
+            onDayCreate: (dObj, dStr, fp, dayElem) => {
+                const f = dayElem.dateObj.toISOString().split('T')[0];
+                dayElem.style.backgroundColor = fechas.includes(f) ? "#90EE90" : "#FFB6B6";
+                if (!fechas.includes(f)) dayElem.style.opacity = "0.5";
             }
         });
     });
 
     document.getElementById('fecha_admin').addEventListener('change', function() {
-        const formData = new FormData();
-        formData.append('fecha', this.value);
-        fetch('/obtener_horarios', { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(data => {
-            const select = document.getElementById('hora_admin');
-            select.innerHTML = '';
-            data.forEach(h => {
-                const opt = document.createElement('option');
-                opt.value = h;
-                opt.textContent = h;
-                select.appendChild(opt);
-            });
+        const fd = new FormData(); fd.append('fecha', this.value);
+        fetch('/obtener_horarios', { method: 'POST', body: fd }).then(r => r.json()).then(data => {
+            const s = document.getElementById('hora_admin'); s.innerHTML = '';
+            data.forEach(h => { const o = document.createElement('option'); o.value = h; o.textContent = h; s.appendChild(o); });
         });
     });
 });
 
-// ✅ Refrescar tabla
-function cargarTurnosAdmin() {
-    const fechaFiltro = "{{ fecha_filtro if fecha_filtro else '' }}";
-    const url = (fechaFiltro && fechaFiltro !== "all") ? `/api/turnos_dia?fecha=${fechaFiltro}` : "/api/turnos_dia";
+document.addEventListener("submit", e => {
+    if (e.target.matches(".form-en-sala") || e.target.matches(".form-borrar")) {
+        e.preventDefault();
+        fetch(e.target.action, { method: "POST", body: new FormData(e.target) }).then(() => location.reload());
+    }
+});
 
-    fetch(url)
-    .then(res => res.json())
-    .then(turnos => {
+document.getElementById("form-asignar").addEventListener("submit", function(e) {
+    e.preventDefault();
+    modal.style.display = "none";
+    fetch(this.action, { method: "POST", body: new FormData(this) }).then(() => location.reload());
+});
+
+function cargarTurnosAdmin() {
+    const f = "{{ fecha_filtro if fecha_filtro else '' }}";
+    const url = (f && f !== "all") ? `/api/turnos_dia?fecha=${f}` : "/api/turnos_dia";
+    fetch(url).then(r => r.json()).then(turnos => {
         const tbody = document.getElementById("tbody-admin");
         tbody.innerHTML = "";
-
         turnos.forEach(t => {
+            const mensaje = encodeURIComponent(
+                `Recordatorio de Turno\n` +
+                `Turno asignado en Zapiola 1180 entre General Alvarez y Luis María Campos, Bernal Oeste.\n\n` +
+                `Hola! Te recordamos que tenés un turno el día ${t.fecha} a las ${t.hora}hs. ¿Confirmas asistencia?\n\n` +
+                `Información importante:\n` +
+                `- Tenemos una tolerancia de espera de 10 minutos.\n` +
+                `- Trabajamos con efectivo, transferencia y tarjeta de débito.\n` +
+                `- Abonando en efectivo tiene un descuento.\n\n` +
+                `Gracias, KL Dental.`
+            );
+            const tel = t.telefono.replace(/[^0-9]/g,'');
             const tr = document.createElement("tr");
             tr.style.background = t.estado === "atendido" ? "#C6F6C6" : (t.estado === "en_sala" ? "#FFD580" : "#E8F6F3");
             tr.innerHTML = `
                 <td>${t.dni}</td>
                 <td>${t.nombre}</td>
-                <td><a href="https://wa.me/${t.telefono}?text=${encodeURIComponent('Recordatorio de Turno\\nTurno asignado en Zapiola 1180...')}" target="_blank" style="color:green; font-weight:bold; text-decoration:none;">${t.telefono}</a></td>
+                <td><a href="https://wa.me/549${tel}?text=${mensaje}" target="_blank" style="color:green; font-weight:bold;">${t.telefono}</a></td>
                 <td>${t.fecha}</td>
                 <td>${t.hora}</td>
                 <td>${t.estado === "atendido" ? "✅ Atendido" : (t.estado === "en_sala" ? "🟢 En Sala" : "🔵 Reservado")}</td>
@@ -230,52 +220,19 @@ function cargarTurnosAdmin() {
                         <input type="hidden" name="dni" value="${t.dni}">
                         <input type="hidden" name="fecha" value="${t.fecha}">
                         <input type="hidden" name="hora" value="${t.hora}">
-                        <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px; cursor:pointer;">🟢 Marcar En Sala</button>
+                        <button type="submit" style="background:#FFC107; color:white;">🟢 Marcar En Sala</button>
                     </form>
-                    <form method="post" action="/borrar_turno" style="display:inline;">
+                    <form class="form-borrar" method="post" action="/borrar_turno" style="display:inline;">
                         <input type="hidden" name="dni" value="${t.dni}">
                         <input type="hidden" name="fecha" value="${t.fecha}">
                         <input type="hidden" name="hora" value="${t.hora}">
-                        <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px; cursor:pointer;">❌ Borrar</button>
+                        <button type="submit" style="background:#DC3545; color:white;">❌ Borrar</button>
                     </form>
                 </td>`;
             tbody.appendChild(tr);
         });
     });
 }
-
-// ✅ Marcar En Sala (instantáneo sin recargar)
-document.addEventListener("submit", function(e) {
-    if (e.target.matches(".form-en-sala")) {
-        e.preventDefault();
-        const form = e.target;
-        const fila = form.closest("tr");
-        if (fila) {
-            fila.style.background = "#FFD580";
-            const estado = fila.querySelector("td:nth-child(6)");
-            if (estado) estado.textContent = "🟢 En Sala";
-        }
-        const formData = new FormData(form);
-        fetch(form.action, { method: "POST", body: formData })
-        .then(res => res.json())
-        .then(data => { if (data.status === "ok") localStorage.setItem("turnoActualizado", Date.now()); });
-    }
-});
-
-// ✅ Asignar Turno Manual (sin recargar página)
-document.getElementById("form-asignar").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const form = this;
-    const formData = new FormData(form);
-    fetch(form.action, { method: "POST", body: formData })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "ok") {
-            cargarTurnosAdmin();
-            form.reset();
-        }
-    });
-});
 
 setInterval(cargarTurnosAdmin, 5000);
 cargarTurnosAdmin();
