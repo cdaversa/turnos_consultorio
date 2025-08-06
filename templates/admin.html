@@ -85,7 +85,6 @@
       flex-shrink: 0;
   }
 
-  /* ✅ BOTÓN VOLVER RESPONSIVE */
   .header-container { display:flex; justify-content:center; align-items:center; margin-bottom:25px; position:relative; flex-wrap:wrap; }
   .btn-volver-container { position:absolute; right:20px; top:50%; transform:translateY(-50%); }
   .btn-volver {
@@ -103,11 +102,27 @@
       #fecha { width:100%; max-width:250px; }
       .link-ver-todos { width:100%; text-align:center; }
   }
+
+.btn-ir-hoy {
+    display: inline-block;
+    padding: 10px 15px;
+    margin-left: 10px;
+    background: #fff;
+    border: 2px solid #28a745;  /* ✅ borde verde */
+    color: #28a745;
+    font-weight: bold;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.btn-ir-hoy:hover {
+    background: #28a745;
+    color: white;
+}
 </style>
 </head>
 <body class="fondo-dientes">
 
-<!-- ✅ ENCABEZADO -->
 <div class="header-container">
     <h1 style="margin:0;">Turnos Reservados</h1>
     <form action="{{ url_for('panel_admin') }}" method="get" class="btn-volver-container">
@@ -115,31 +130,27 @@
     </form>
 </div>
 
-<!-- ✅ FILTRO -->
 <div class="filtro-container">
     <form method="get" action="/ver_turnos">
         <label for="fecha">Filtrar por fecha:</label>
-        <input type="date" name="fecha" id="fecha" value="{{ fecha_filtro if (fecha_filtro and fecha_filtro != 'all') else '' }}">
-        <button type="submit" class="btn-estilo btn-filtrar">Filtrar</button>
-        {% if fecha_filtro and fecha_filtro != 'all' %}
-        <a href="{{ url_for('ver_turnos', fecha='all') }}" class="link-ver-todos">Ver todos</a>
-        {% endif %}
+        <input type="date" name="fecha" id="fecha" 
+               value="{{ fecha_filtro if (fecha_filtro and fecha_filtro != 'all') else '' }}"
+               onchange="window.location.href='/ver_turnos?fecha=' + this.value">
+        <a href="/ver_turnos?fecha={{ hoy }}" class="btn-ir-hoy">Ir a Hoy</a>
     </form>
 </div>
 
-<!-- ✅ BOTÓN ASIGNAR -->
 <div style="width:100%; display:flex; justify-content:center; margin-bottom:25px;">
     <button id="btn-open-modal" class="btn-estilo btn-asignar">➕ Asignar Turno Manual</button>
 </div>
 
-<!-- ✅ TABLA -->
 <table id="tabla-admin" style="width:100%; text-align:center;">
     <thead>
         <tr><th>DNI</th><th>Nombre</th><th>Teléfono</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acción</th></tr>
     </thead>
     <tbody id="tbody-admin">
         {% for t in turnos %}
-        <tr style="background:{% if t.estado == 'atendido' %}#C6F6C6{% elif t.estado == 'en_sala' %}#FFD580{% else %}#E8F6F3{% endif %};">
+        <tr style="background:{% if t.estado == 'atendido' %}#C6F6C6{% elif t.estado == 'en_sala' %}#FFD580{% elif t.estado == 'libre' %}#fff{% else %}#E8F6F3{% endif %};">
             <td>{{ t.dni }}</td>
             <td>{{ t.nombre }}</td>
             <td>
@@ -158,21 +169,29 @@
             </td>
             <td>{{ t.fecha }}</td>
             <td>{{ t.hora }}</td>
-            <td>{% if t.estado == 'atendido' %}✅ Atendido{% elif t.estado == 'en_sala' %}🟢 En Sala{% else %}🔵 Reservado{% endif %}</td>
-            <td>
-                <form class="form-en-sala" method="post" action="/marcar_en_sala" style="display:inline;">
-                    <input type="hidden" name="dni" value="{{ t.dni }}">
-                    <input type="hidden" name="fecha" value="{{ t.fecha }}">
-                    <input type="hidden" name="hora" value="{{ t.hora }}">
-                    <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px;">🟢 Marcar En Sala</button>
-                </form>
-                <form class="form-borrar" method="post" action="/borrar_turno" style="display:inline;">
-                    <input type="hidden" name="dni" value="{{ t.dni }}">
-                    <input type="hidden" name="fecha" value="{{ t.fecha }}">
-                    <input type="hidden" name="hora" value="{{ t.hora }}">
-                    <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px;">❌ Borrar</button>
-                </form>
-            </td>
+           <td>
+    {% if t.estado == 'atendido' %}✅ Atendido
+    {% elif t.estado == 'en_sala' %}🟢 En Sala
+    {% elif t.estado == 'libre' %}⚪ Libre
+    {% else %}🔵 Reservado
+    {% endif %}
+</td>
+                <td>
+{% if t.estado != 'libre' %}
+    <form class="form-en-sala" method="post" action="/marcar_en_sala" style="display:inline;">
+        <input type="hidden" name="dni" value="{{ t.dni }}">
+        <input type="hidden" name="fecha" value="{{ t.fecha }}">
+        <input type="hidden" name="hora" value="{{ t.hora }}">
+        <button type="submit" style="background:#FFC107; color:white; border:none; padding:5px 10px;">🟢 Marcar En Sala</button>
+    </form>
+    <form class="form-borrar" method="post" action="/borrar_turno" style="display:inline;">
+        <input type="hidden" name="dni" value="{{ t.dni }}">
+        <input type="hidden" name="fecha" value="{{ t.fecha }}">
+        <input type="hidden" name="hora" value="{{ t.hora }}">
+        <button type="submit" style="background:#DC3545; color:white; border:none; padding:5px 10px;">❌ Borrar</button>
+    </form>
+{% endif %}
+</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -252,28 +271,35 @@ function cargarTurnosAdmin() {
             const tel = t.telefono.replace(/[^0-9]/g,'');
             const tr = document.createElement("tr");
             tr.style.background = t.estado === "atendido" ? "#C6F6C6" : (t.estado === "en_sala" ? "#FFD580" : "#E8F6F3");
-            tr.innerHTML = `
-                <td>${t.dni}</td>
-                <td>${t.nombre}</td>
-                <td><a href="https://wa.me/549${tel}?text=${mensaje}" target="_blank" style="color:green; font-weight:bold;">${t.telefono}</a></td>
-                <td>${t.fecha}</td>
-                <td>${t.hora}</td>
-                <td>${t.estado === "atendido" ? "✅ Atendido" : (t.estado === "en_sala" ? "🟢 En Sala" : "🔵 Reservado")}</td>
-                <td>
-                    <form class="form-en-sala" method="post" action="/marcar_en_sala" style="display:inline;">
-                        <input type="hidden" name="dni" value="${t.dni}">
-                        <input type="hidden" name="fecha" value="${t.fecha}">
-                        <input type="hidden" name="hora" value="${t.hora}">
-                        <button type="submit" style="background:#FFC107; color:white;">🟢 Marcar En Sala</button>
-                    </form>
-                    <form class="form-borrar" method="post" action="/borrar_turno" style="display:inline;">
-                        <input type="hidden" name="dni" value="${t.dni}">
-                        <input type="hidden" name="fecha" value="${t.fecha}">
-                        <input type="hidden" name="hora" value="${t.hora}">
-                        <button type="submit" style="background:#DC3545; color:white;">❌ Borrar</button>
-                    </form>
-                </td>`;
-            tbody.appendChild(tr);
+       tr.innerHTML = `
+    <td>${t.dni}</td>
+    <td>${t.nombre}</td>
+    <td><a href="https://wa.me/549${tel}?text=${mensaje}" target="_blank" style="color:green; font-weight:bold;">${t.telefono}</a></td>
+    <td>${t.fecha}</td>
+    <td>${t.hora}</td>
+    <td>${
+        t.estado === "atendido" ? "✅ Atendido" :
+        (t.estado === "en_sala" ? "🟢 En Sala" :
+        (t.estado === "libre" ? "⚪ Libre" : "🔵 Reservado"))
+    }</td>
+    <td>${
+        t.estado !== "libre" 
+        ? `<form class="form-en-sala" method="post" action="/marcar_en_sala" style="display:inline;">
+               <input type="hidden" name="dni" value="${t.dni}">
+               <input type="hidden" name="fecha" value="${t.fecha}">
+               <input type="hidden" name="hora" value="${t.hora}">
+               <button type="submit" style="background:#FFC107; color:white;">🟢 Marcar En Sala</button>
+           </form>
+           <form class="form-borrar" method="post" action="/borrar_turno" style="display:inline;">
+               <input type="hidden" name="dni" value="${t.dni}">
+               <input type="hidden" name="fecha" value="${t.fecha}">
+               <input type="hidden" name="hora" value="${t.hora}">
+               <button type="submit" style="background:#DC3545; color:white;">❌ Borrar</button>
+           </form>`
+        : ""
+    }</td>
+`;
+tbody.appendChild(tr);
         });
     });
 }

@@ -4,83 +4,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Profesional</title>
-    <style>
-        body.fondo-dientes {
-            background: url('/static/fondo_dientes4.jpg') repeat center center;
-            background-size: auto;
-            font-family: Arial, sans-serif;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-            position: relative;
-        }
+<style>
+    body.fondo-dientes {
+        background: url('/static/fondo_dientes4.jpg') repeat center center;
+        background-size: auto;
+        font-family: Arial, sans-serif;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        position: relative;
+    }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
-        th { background: #007BFF; color: white; }
-        tr.en-sala { background: #FFD580; }
-        tr.reservado { background: #E8F6F3; }
-        tr.atendido { background: #C6F6C6; }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
 
-        button { padding: 5px 10px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 5px; }
-        button:hover { background: #218838; }
+    th, td {
+        padding: 10px;
+        border: 1px solid #ccc;
+        text-align: center;
+    }
 
-        /* 🔹 Botón cerrar sesión */
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #dc3545;
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            z-index: 10;
-        }
-        .logout-btn:hover { background: #b52b37; }
+    th { background: #007BFF; color: white; }
 
-        /* 🔹 Contenedor encabezado */
-        .header-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 25px;
-            position: relative;
-            padding: 10px 20px;
-        }
+    tr.en-sala { background: #FFD580; }
+    tr.reservado { background: #E8F6F3; }
+    tr.atendido { background: #C6F6C6; }
+    tr.libre { background: #ffffff; color: #999; font-style: italic; }
 
-        .header-container h1 {
-            margin: 0;
-            flex: 1;
-        }
+    button {
+        padding: 5px 10px;
+        background: #28a745;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+    }
 
-        /* 🔹 Ajuste en pantallas chicas */
-        @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .logout-btn {
-                position: static;
-                display: inline-block;
-                width: auto;
-            }
-        }
-    </style>
+    button:hover { background: #218838; }
+
+    .logout-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #dc3545;
+        color: white;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .logout-btn:hover { background: #b52b37; }
+
+    /* ✅ Contenedor del filtro (igual que admin) */
+    .filtro-container {
+        width: 100%;
+        padding: 0 20px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+    }
+
+    .filtro-container label {
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    /* ✅ Input de fecha agrandado */
+    #selector-fecha {
+        height: 45px;
+        font-size: 16px;
+        padding: 5px;
+        min-width: 180px;
+        max-width: 220px;
+        flex-shrink: 0;
+    }
+
+    /* ✅ Botones estilo admin */
+    .btn-estilo {
+        height: 45px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 20px;
+        flex-shrink: 0;
+    }
+
+    .btn-hoy {
+        background: #28a745;
+        color: white;
+        font-weight: bold;
+    }
+
+    .btn-hoy:hover { background: #1e7e34; }
+
+    /* ✅ RESPONSIVE para móviles */
+    @media (max-width: 768px) {
+        .filtro-container { flex-wrap: wrap; gap: 8px; }
+        #selector-fecha { width: 100%; max-width: 250px; }
+        .btn-estilo, .btn-hoy { width: 100%; max-width: 250px; }
+        .logout-btn { position: static; display: block; margin: 10px auto; }
+    }
+</style>
 </head>
 <body class="fondo-dientes">
 
-<!-- 🔹 ENCABEZADO CON BOTÓN FIJO EN ESCRITORIO -->
-<div class="header-container">
-    <h1>Turnos del Día <span id="fecha-mostrar">{{ fecha }}</span></h1>
-    <a href="{{ url_for('logout_profesional') }}" class="logout-btn">🚪 Cerrar Sesión</a>
-</div>
+<h1>Turnos del Día <span id="fecha-mostrar">{{ fecha }}</span></h1>
 
-<input type="date" id="selector-fecha" value="{{ fecha }}">
-<button onclick="cargarTurnos()">🔄 Ver Turnos</button>
+<div class="filtro-container">
+    <label for="selector-fecha">Filtrar por fecha:</label>
+    <input type="date" id="selector-fecha" value="{{ fecha }}" onchange="cargarTurnos()">
+    <button class="btn-estilo btn-hoy" onclick="irAHoy()">Ir a Hoy</button>
+</div>
 
 <table id="tabla-turnos">
     <thead>
@@ -88,9 +135,10 @@
     </thead>
     <tbody></tbody>
 </table>
+<a href="{{ url_for('logout_profesional') }}" class="logout-btn">🚪 Cerrar Sesión</a>
+
 
 <script>
-// ✅ Carga de turnos
 function cargarTurnos() {
     const fecha = document.getElementById("selector-fecha").value || "{{ fecha }}";
     document.getElementById("fecha-mostrar").innerText = fecha;
@@ -102,40 +150,30 @@ function cargarTurnos() {
         tbody.innerHTML = "";
         turnos.forEach(t => {
             const tr = document.createElement("tr");
-            tr.className = t.estado === "en_sala" ? "en-sala" : (t.estado === "atendido" ? "atendido" : "reservado");
+            tr.className = t.estado === "en_sala" ? "en-sala" :
+                           t.estado === "atendido" ? "atendido" :
+                           t.estado === "reservado" ? "reservado" : "libre";
+
+            // ✅ Solo permitir botón si está "en_sala"
+            let acciones = "";
+            if (t.estado === "en_sala") {
+                acciones = `<button onclick="marcarAtendido('${t.dni}','${t.fecha}','${t.hora}', this)">✅ Marcar Atendido</button>`;
+            }
+
             tr.innerHTML = `
                 <td>${t.hora}</td>
-                <td>${t.nombre}</td>
-                <td>${t.dni}</td>
-                <td>${t.telefono}</td>
-                <td>${t.estado === "en_sala" ? "🟢 En Sala" : (t.estado === "atendido" ? "✅ Atendido" : "🔵 Reservado")}</td>
-                <td>
-                    ${t.estado === "reservado" ? 
-                        `<button onclick="marcarEnSala('${t.dni}','${t.fecha}','${t.hora}', this)">🟢 Marcar En Sala</button>` : 
-                        (t.estado !== "atendido" ? `<button onclick="marcarAtendido('${t.dni}','${t.fecha}','${t.hora}', this)">✅ Marcar Atendido</button>` : "")
-                    }
-                </td>`;
+                <td>${t.nombre || '(Libre)'}</td>
+                <td>${t.dni || '-'}</td>
+                <td>${t.telefono || '-'}</td>
+                <td>${t.estado === "libre" ? "⚪ Libre" :
+                    (t.estado === "en_sala" ? "🟢 En Sala" :
+                    (t.estado === "atendido" ? "✅ Atendido" : "🔵 Reservado"))}</td>
+                <td>${acciones}</td>`;
             tbody.appendChild(tr);
         });
     });
 }
 
-// ✅ Marcar en sala instantáneo
-function marcarEnSala(dni, fecha, hora, btn) {
-    const fila = btn.closest("tr");
-    fila.className = "en-sala";
-    fila.children[4].textContent = "🟢 En Sala";
-    fila.children[5].innerHTML = `<button onclick="marcarAtendido('${dni}','${fecha}','${hora}', this)">✅ Marcar Atendido</button>`;
-    localStorage.setItem("estadoTurnoActualizado", Date.now());
-
-    fetch('/marcar_en_sala', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `dni=${dni}&fecha=${fecha}&hora=${hora}`
-    }).catch(() => cargarTurnos());
-}
-
-// ✅ Marcar atendido instantáneo
 function marcarAtendido(dni, fecha, hora, btn) {
     const fila = btn.closest("tr");
     fila.className = "atendido";
@@ -150,7 +188,12 @@ function marcarAtendido(dni, fecha, hora, btn) {
     }).catch(() => cargarTurnos());
 }
 
-// ✅ Inicialización
+function irAHoy() {
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById("selector-fecha").value = hoy;
+    cargarTurnos();
+}
+
 document.addEventListener("DOMContentLoaded", cargarTurnos);
 setInterval(cargarTurnos, 5000);
 </script>

@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session, send_file
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import json, os, smtplib, sqlite3, pytz
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -186,30 +186,47 @@ def enviar_email_cancelacion(destinatario, fecha, hora, nombre):
 
 # ====== FUNCIONES DE TURNOS (FERIADOS, VACACIONES, HORARIOS) ======
 def es_feriado(fecha):
+    if fecha == "all":
+        return False  # ✅ "all" nunca es feriado
     return fecha in cargar_config().get("feriados", [])
 
 def es_vacaciones(fecha):
+    if fecha == "all":
+        return False  # ✅ "all" no es un rango de vacaciones
     cfg = cargar_config()
     f = datetime.strptime(fecha, "%Y-%m-%d").date()
     for r in cfg.get("vacaciones", []):
         try:
             i = datetime.strptime(r["inicio"], "%Y-%m-%d").date()
             fn = datetime.strptime(r["fin"], "%Y-%m-%d").date()
-            if i <= f <= fn: return True
-        except: continue
+            if i <= f <= fn:
+                return True
+        except:
+            continue
     return False
 
 def generar_turnos_disponibles(fecha):
-    if es_feriado(fecha) or es_vacaciones(fecha): return []
+    # ✅ Si fecha es "all", devolver lista vacía (o manejar según tu lógica)
+    if fecha == "all":
+        return []
+
+    if es_feriado(fecha) or es_vacaciones(fecha):
+        return []
+    
     cfg = cargar_config()
     horarios_cfg = cfg.get('horarios_atencion', {})
     intervalo = cfg.get('intervalo_turnos', 15)
     dia = datetime.strptime(fecha, '%Y-%m-%d').strftime('%A').lower()
-    dias_map = {'monday':'lunes','tuesday':'martes','wednesday':'miércoles','thursday':'jueves','friday':'viernes','saturday':'sábado','sunday':'domingo'}
-    dia = dias_map.get(dia,'')
-    if dia not in horarios_cfg: return []
+    dias_map = {
+        'monday': 'lunes', 'tuesday': 'martes', 'wednesday': 'miércoles',
+        'thursday': 'jueves', 'friday': 'viernes', 'saturday': 'sábado', 'sunday': 'domingo'
+    }
+    dia = dias_map.get(dia, '')
+    if dia not in horarios_cfg:
+        return []
     h = horarios_cfg[dia]
-    if len(h)>2 and not h[2]: return []
+    if len(h) > 2 and not h[2]:
+        return []
     inicio, fin = h[0], h[1]
     hora = datetime.strptime(f"{fecha} {inicio}", "%Y-%m-%d %H:%M")
     hf = datetime.strptime(f"{fecha} {fin}", "%Y-%m-%d %H:%M")
@@ -217,7 +234,7 @@ def generar_turnos_disponibles(fecha):
     while hora < hf:
         horarios.append(hora.strftime('%H:%M'))
         hora += timedelta(minutes=intervalo)
-    ocupados = [t['hora'] for t in cargar_turnos() if t['fecha']==fecha]
+    ocupados = [t['hora'] for t in cargar_turnos() if t['fecha'] == fecha]
     return [x for x in horarios if x not in ocupados]
 
 # ====== TODAS LAS RUTAS ORIGINALES ======
@@ -255,13 +272,31 @@ def logout(): session.pop('admin',None); return redirect(url_for('panel_admin'))
 
 @app.route('/ver_turnos')
 def ver_turnos():
-    if not session.get('admin'): return redirect(url_for('panel_admin'))
+    if not session.get('admin'):
+        return redirect(url_for('panel_admin'))
+
     f = request.args.get('fecha')
-    ts = cargar_turnos()
-    if f is None: f=fecha_hoy().strftime('%Y-%m-%d'); ts=[t for t in ts if t['fecha']==f]
-    elif f!="all": ts=[t for t in ts if t['fecha']==f]
-    ts = sorted(ts,key=lambda x:(x['fecha'],x['hora']))
-    return render_template('admin.html',turnos=ts,fecha_filtro=f)
+    if not f:
+        f = fecha_hoy().strftime('%Y-%m-%d')
+
+    ocupados = [t for t in cargar_turnos() if t['fecha'] == f]
+
+    libres = []
+    for hora in generar_turnos_disponibles(f):
+        libres.append({
+            'dni': '',
+            'nombre': '--- Disponible ---',
+            'telefono': '',
+            'email': '',
+            'fecha': f,
+            'hora': hora,
+            'estado': 'libre'
+        })
+
+    todos = sorted(ocupados + libres, key=lambda x: x['hora'])
+
+    # ✅ pasamos la fecha actual como variable 'hoy'
+    return render_template('admin.html', turnos=todos, fecha_filtro=f, hoy=fecha_hoy().strftime('%Y-%m-%d'))
 
 @app.route('/borrar_turno',methods=['POST'])
 def borrar_turno():
@@ -339,11 +374,30 @@ def marcar_atendido():
 
 @app.route('/api/turnos_dia')
 def api_turnos_dia():
-    f=request.args.get('fecha'); ts=cargar_turnos()
-    for x in ts:
-        if x['estado'] not in ['reservado','en_sala','atendido']: actualizar_estado_turno(x['dni'],x['fecha'],x['hora'],'reservado')
-    ts=sorted([x for x in ts if not f or x['fecha']==f],key=lambda y:(y['fecha'],y['hora']))
-    return jsonify(ts)
+    f = request.args.get('fecha')
+    if not f:
+        f = fecha_hoy().strftime('%Y-%m-%d')
+
+    # Turnos ocupados
+    ocupados = [t for t in cargar_turnos() if t['fecha'] == f]
+
+    # Horarios disponibles
+    libres = []
+    for hora in generar_turnos_disponibles(f):
+        libres.append({
+            'dni': '',
+            'nombre': '--- Disponible ---',
+            'telefono': '',
+            'email': '',
+            'fecha': f,
+            'hora': hora,
+            'estado': 'libre'
+        })
+
+    # Unimos y ordenamos
+    todos = ocupados + libres
+    todos = sorted(todos, key=lambda x: x['hora'])
+    return jsonify(todos)
 
 @app.route('/profesional',methods=['GET','POST'])
 def profesional():
